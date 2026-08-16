@@ -1,11 +1,11 @@
 :root {
-    --bg-dark: #0f1115;
-    --bg-panel: #1a1d24;
-    --bg-hover: #252932;
-    --text-primary: #e2e8f0;
-    --text-secondary: #94a3b8;
-    --border-color: #2d3748;
-    --accent-blue: #3b82f6;
+    --bg-dark: #fbfaf8; /* Soft linen white */
+    --bg-panel: #ffffff;
+    --bg-hover: #f3f0ea;
+    --text-primary: #2c2c2a;
+    --text-secondary: #73736f;
+    --border-color: #e8e6e1;
+    --accent-blue: #b46b3f; /* Using terracotta/amber as the primary accent to match demo site */
     --accent-red: #ef4444;
     --accent-green: #10b981;
     --accent-orange: #f59e0b;
@@ -106,8 +106,8 @@ header {
     margin-bottom: 30px;
 }
 
-h1 { font-size: 24px; font-weight: 600; }
-h3 { font-size: 16px; font-weight: 600; margin-bottom: 15px; color: var(--text-primary); }
+h1 { font-size: 24px; font-weight: 600; font-family: Georgia, serif; }
+h3 { font-size: 16px; font-weight: 600; margin-bottom: 15px; color: var(--text-primary); font-family: Georgia, serif; }
 
 .time-range {
     background: var(--bg-panel);
@@ -181,7 +181,7 @@ th {
     font-weight: 600;
     text-transform: uppercase;
     font-size: 12px;
-    letter-spacing: 0.5px;
+    letter-spacing: 1px;
 }
 
 tr:hover { background-color: var(--bg-hover); }

@@ -1,15 +1,38 @@
+# Environments
+.env
+.venv
+env/
+venv/
+ENV/
+env.bak/
+venv.bak/
+
 # Python
-.venv/
 __pycache__/
 *.py[cod]
-
-# Secrets
-.env
-*.key
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+share/python-wheels/
+*.egg-info/
+.installed.cfg
+*.egg
 
 # Database — regenerate with scripts/seed.py
-*.db
 *.sqlite3
+*.db
 
 # Model artifacts — regenerate with ml/train.py
 backend/ml/artifacts/
@@ -21,13 +44,23 @@ backend/data/feeds/
 data/training.csv
 *.csv.gz
 
+# Secrets
+*.key
+
 # Planning / briefs — local only
 PLAN.md
 docs/*
 !docs/api-contract.md
 
-# OS / editor
+# OS generated files
 .DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
 Thumbs.db
+
+# Editors
 .vscode/
 .idea/
