@@ -1,0 +1,201 @@
+{
+  "id": "INC-0187",
+  "title": "Multi-stage reconnaissance and credential attack",
+  "status": "open",
+  "priority": "P1",
+  "risk_score": 82.7,
+  "opened_at": "2026-08-16T09:14:22Z",
+  "last_seen_at": "2026-08-16T10:02:41Z",
+
+  "risk_breakdown": {
+    "model_confidence":  { "raw": 0.94, "weight": 0.20, "points": 18.8 },
+    "asset_criticality": { "raw": 0.90, "weight": 0.20, "points": 18.0 },
+    "exploitability":    { "raw": 1.00, "weight": 0.20, "points": 20.0 },
+    "blast_radius":      { "raw": 0.59, "weight": 0.15, "points": 8.8 },
+    "kill_chain_depth":  { "raw": 0.50, "weight": 0.15, "points": 7.5 },
+    "recency":           { "raw": 0.96, "weight": 0.10, "points": 9.6 }
+  },
+
+  "summary": "Nine events over 48 minutes from ASN 14061 (DigitalOcean). Every event scored P4 in isolation. Correlated, they form a reconnaissance sweep that located an exposed Spring Boot Actuator endpoint on metrics-agent, followed by credential stuffing against auth-service and one successful authentication.",
+
+  "kill_chain": [
+    { "tactic": "Reconnaissance", "technique_id": "T1595.002", "technique": "Vulnerability Scanning", "first_seen": "2026-08-16T09:14:22Z", "event_count": 5 },
+    { "tactic": "Credential Access", "technique_id": "T1110.004", "technique": "Credential Stuffing", "first_seen": "2026-08-16T09:51:08Z", "event_count": 3 },
+    { "tactic": "Initial Access", "technique_id": "T1078", "technique": "Valid Accounts", "first_seen": "2026-08-16T10:02:41Z", "event_count": 1 }
+  ],
+
+  "entities": [
+    { "kind": "ip",     "value": "185.220.101.34",    "event_count": 5, "reputation_hit": false },
+    { "kind": "ip",     "value": "185.220.101.61",    "event_count": 4, "reputation_hit": false },
+    { "kind": "subnet", "value": "185.220.101.0/24",  "event_count": 9, "reputation_hit": false },
+    { "kind": "asn",    "value": "14061",             "event_count": 9, "reputation_hit": false },
+    { "kind": "user",   "value": "u_8f2a1c",          "event_count": 4, "reputation_hit": false },
+    { "kind": "asset",  "value": "metrics-agent",     "event_count": 5, "reputation_hit": false },
+    { "kind": "asset",  "value": "auth-service",      "event_count": 4, "reputation_hit": false },
+    { "kind": "cve",    "value": "CVE-2022-22965",    "event_count": 2, "reputation_hit": false }
+  ],
+
+  "entity_graph_svg": "<svg viewBox=\"0 0 640 360\" xmlns=\"http://www.w3.org/2000/svg\" class=\"entity-graph\"><g class=\"edges\"><line class=\"edge\" x1=\"90\" y1=\"180\" x2=\"215\" y2=\"180\" stroke-width=\"3\"/><line class=\"edge\" x1=\"215\" y1=\"180\" x2=\"340\" y2=\"105\" stroke-width=\"3\"/><line class=\"edge\" x1=\"215\" y1=\"180\" x2=\"340\" y2=\"255\" stroke-width=\"3\"/><line class=\"edge\" x1=\"340\" y1=\"105\" x2=\"475\" y2=\"60\" stroke-width=\"2\"/><line class=\"edge\" x1=\"475\" y1=\"60\" x2=\"585\" y2=\"120\" stroke-width=\"2\"/><line class=\"edge edge-weak\" x1=\"340\" y1=\"255\" x2=\"475\" y2=\"60\" stroke-width=\"1\" stroke-dasharray=\"4 4\"/><line class=\"edge\" x1=\"340\" y1=\"255\" x2=\"475\" y2=\"300\" stroke-width=\"3\"/><line class=\"edge\" x1=\"475\" y1=\"300\" x2=\"585\" y2=\"265\" stroke-width=\"2\"/></g><g class=\"nodes\"><circle class=\"node node-asn\" cx=\"90\" cy=\"180\" r=\"26\"/><circle class=\"node node-subnet\" cx=\"215\" cy=\"180\" r=\"22\"/><circle class=\"node node-ip\" cx=\"340\" cy=\"105\" r=\"18\"/><circle class=\"node node-ip\" cx=\"340\" cy=\"255\" r=\"17\"/><circle class=\"node node-asset\" cx=\"475\" cy=\"60\" r=\"18\"/><circle class=\"node node-cve\" cx=\"585\" cy=\"120\" r=\"20\"/><circle class=\"node node-asset\" cx=\"475\" cy=\"300\" r=\"17\"/><circle class=\"node node-user\" cx=\"585\" cy=\"265\" r=\"15\"/></g><g class=\"labels\"><text class=\"node-label\" x=\"90\" y=\"222\" text-anchor=\"middle\">AS14061</text><text class=\"node-label\" x=\"215\" y=\"218\" text-anchor=\"middle\">185.220.101.0/24</text><text class=\"node-label\" x=\"340\" y=\"79\" text-anchor=\"middle\">.34</text><text class=\"node-label\" x=\"340\" y=\"288\" text-anchor=\"middle\">.61</text><text class=\"node-label\" x=\"475\" y=\"32\" text-anchor=\"middle\">metrics-agent</text><text class=\"node-label\" x=\"585\" y=\"152\" text-anchor=\"middle\">CVE-2022-22965</text><text class=\"node-label\" x=\"475\" y=\"332\" text-anchor=\"middle\">auth-service</text><text class=\"node-label\" x=\"585\" y=\"292\" text-anchor=\"middle\">u_8f2a1c</text></g></svg>",
+
+  "threat_intel": [
+    {
+      "kind": "cve",
+      "value": "CVE-2022-22965",
+      "name": "Spring4Shell",
+      "in_kev": true,
+      "kev_added": "2022-04-04",
+      "epss": 0.974,
+      "matched_asset": "metrics-agent",
+      "matched_software": "Spring Boot Actuator",
+      "triggered_by_path": "/actuator/env",
+      "source": "CISA KEV"
+    },
+    {
+      "kind": "ip_reputation",
+      "value": "185.220.101.34",
+      "name": "No reputation hit",
+      "in_kev": false,
+      "epss": null,
+      "matched_asset": null,
+      "matched_software": null,
+      "triggered_by_path": null,
+      "source": "Feodo Tracker / Tor exit list"
+    }
+  ],
+
+  "similar_incident": {
+    "id": "INC-0142",
+    "similarity": 0.87,
+    "opened_at": "2026-07-23T02:11:00Z",
+    "days_ago": 24,
+    "verdict": "confirmed_malicious",
+    "shared": ["ASN 14061", "T1595.002", "T1110.004", "low_and_slow timing", "hosting-range origin"]
+  },
+
+  "events": [
+    {
+      "id": 41822, "ts": "2026-08-16T09:14:22Z", "src_ip": "185.220.101.34",
+      "url_path": "/.env", "http_status": 404, "user_id": null, "asset_id": "cdn-edge",
+      "pred_class": "slow_recon", "pred_confidence": 0.71, "individual_priority": "P4",
+      "attack_technique": "T1595.002",
+      "evidence": [
+        { "feature": "browser_telemetry_present", "value": 0, "baseline": "1", "deviation": "absent", "note": "no JavaScript executed — request did not come from a browser" },
+        { "feature": "sensitive_path_hit", "value": 1, "baseline": "0", "deviation": "present", "note": "requested a credentials file path" },
+        { "feature": "asn_is_hosting", "value": 1, "baseline": "0", "deviation": "present", "note": "datacentre origin, not residential" },
+        { "feature": "req_rate_60s", "value": 1, "baseline": "3–12", "deviation": "3× below baseline", "note": "deliberately low request rate" }
+      ]
+    },
+    {
+      "id": 41847, "ts": "2026-08-16T09:19:47Z", "src_ip": "185.220.101.34",
+      "url_path": "/.git/config", "http_status": 404, "user_id": null, "asset_id": "cdn-edge",
+      "pred_class": "slow_recon", "pred_confidence": 0.68, "individual_priority": "P4",
+      "attack_technique": "T1595.002",
+      "evidence": [
+        { "feature": "browser_telemetry_present", "value": 0, "baseline": "1", "deviation": "absent", "note": "no JavaScript executed" },
+        { "feature": "sensitive_path_hit", "value": 1, "baseline": "0", "deviation": "present", "note": "requested a source-control config path" },
+        { "feature": "p404_ratio_60s", "value": 1.0, "baseline": "0.00–0.04", "deviation": "25× above baseline", "note": "every request in the window returned 404" }
+      ]
+    },
+    {
+      "id": 41889, "ts": "2026-08-16T09:27:03Z", "src_ip": "185.220.101.34",
+      "url_path": "/wp-admin/", "http_status": 404, "user_id": null, "asset_id": "blog-cms",
+      "pred_class": "slow_recon", "pred_confidence": 0.74, "individual_priority": "P4",
+      "attack_technique": "T1595.002",
+      "evidence": [
+        { "feature": "browser_telemetry_present", "value": 0, "baseline": "1", "deviation": "absent", "note": "no JavaScript executed" },
+        { "feature": "path_entropy", "value": 3.9, "baseline": "1.2–2.1", "deviation": "1.9× above baseline", "note": "paths do not follow site navigation structure" },
+        { "feature": "ua_known_tool", "value": 1, "baseline": "0", "deviation": "present", "note": "user agent matches a known scanning tool signature" }
+      ]
+    },
+    {
+      "id": 41934, "ts": "2026-08-16T09:38:29Z", "src_ip": "185.220.101.34",
+      "url_path": "/phpmyadmin/", "http_status": 404, "user_id": null, "asset_id": "cdn-edge",
+      "pred_class": "slow_recon", "pred_confidence": 0.70, "individual_priority": "P4",
+      "attack_technique": "T1595.002",
+      "evidence": [
+        { "feature": "browser_telemetry_present", "value": 0, "baseline": "1", "deviation": "absent", "note": "no JavaScript executed" },
+        { "feature": "unique_paths_60s", "value": 1, "baseline": "2–6", "deviation": "within baseline", "note": "rate deliberately kept inside normal bounds" },
+        { "feature": "sensitive_path_hit", "value": 1, "baseline": "0", "deviation": "present", "note": "requested a database admin path" }
+      ]
+    },
+    {
+      "id": 41978, "ts": "2026-08-16T09:44:51Z", "src_ip": "185.220.101.34",
+      "url_path": "/actuator/env", "http_status": 200, "user_id": null, "asset_id": "metrics-agent",
+      "pred_class": "slow_recon", "pred_confidence": 0.86, "individual_priority": "P4",
+      "attack_technique": "T1595.002",
+      "evidence": [
+        { "feature": "sensitive_path_hit", "value": 1, "baseline": "0", "deviation": "present", "note": "Spring Boot Actuator environment endpoint — returned 200, endpoint is exposed" },
+        { "feature": "browser_telemetry_present", "value": 0, "baseline": "1", "deviation": "absent", "note": "no JavaScript executed" },
+        { "feature": "asn_is_hosting", "value": 1, "baseline": "0", "deviation": "present", "note": "datacentre origin" },
+        { "feature": "interarrival_std_ms", "value": 4.2, "baseline": "800–4000", "deviation": "190× below baseline", "note": "machine-uniform request timing" }
+      ]
+    },
+    {
+      "id": 42104, "ts": "2026-08-16T09:51:08Z", "src_ip": "185.220.101.61",
+      "url_path": "/login", "http_status": 401, "user_id": "u_3b71ef", "asset_id": "auth-service",
+      "pred_class": "credential_stuffing", "pred_confidence": 0.83, "individual_priority": "P4",
+      "attack_technique": "T1110.004",
+      "evidence": [
+        { "feature": "browser_telemetry_present", "value": 0, "baseline": "1", "deviation": "absent", "note": "no JavaScript executed — credentials submitted directly to the API" },
+        { "feature": "distinct_users_tried_60s", "value": 3, "baseline": "1", "deviation": "3× above baseline", "note": "multiple accounts attempted from one address" },
+        { "feature": "auth_fail_ip_60s", "value": 3, "baseline": "0–2", "deviation": "within baseline", "note": "failure count kept below typical lockout thresholds" }
+      ]
+    },
+    {
+      "id": 42151, "ts": "2026-08-16T09:56:22Z", "src_ip": "185.220.101.61",
+      "url_path": "/login", "http_status": 401, "user_id": "u_c04d92", "asset_id": "auth-service",
+      "pred_class": "credential_stuffing", "pred_confidence": 0.88, "individual_priority": "P4",
+      "attack_technique": "T1110.004",
+      "evidence": [
+        { "feature": "browser_telemetry_present", "value": 0, "baseline": "1", "deviation": "absent", "note": "no JavaScript executed" },
+        { "feature": "distinct_users_tried_60s", "value": 2, "baseline": "1", "deviation": "2× above baseline", "note": "account rotation on a single source address" },
+        { "feature": "asn_is_hosting", "value": 1, "baseline": "0", "deviation": "present", "note": "datacentre origin" }
+      ]
+    },
+    {
+      "id": 42196, "ts": "2026-08-16T09:59:47Z", "src_ip": "185.220.101.61",
+      "url_path": "/login", "http_status": 401, "user_id": "u_8f2a1c", "asset_id": "auth-service",
+      "pred_class": "credential_stuffing", "pred_confidence": 0.85, "individual_priority": "P4",
+      "attack_technique": "T1110.004",
+      "evidence": [
+        { "feature": "browser_telemetry_present", "value": 0, "baseline": "1", "deviation": "absent", "note": "no JavaScript executed" },
+        { "feature": "auth_fail_user_60s", "value": 1, "baseline": "0–2", "deviation": "within baseline", "note": "one attempt per account, below per-user lockout" },
+        { "feature": "paste_events", "value": null, "baseline": "0–1", "deviation": "unavailable", "note": "no browser session to measure" }
+      ]
+    },
+    {
+      "id": 42233, "ts": "2026-08-16T10:02:41Z", "src_ip": "185.220.101.61",
+      "url_path": "/login", "http_status": 200, "user_id": "u_8f2a1c", "asset_id": "auth-service",
+      "pred_class": "credential_stuffing", "pred_confidence": 0.91, "individual_priority": "P4",
+      "attack_technique": "T1078",
+      "evidence": [
+        { "feature": "auth_success_after_fails", "value": 1, "baseline": "0", "deviation": "present", "note": "successful authentication following failed attempts on the same address" },
+        { "feature": "browser_telemetry_present", "value": 0, "baseline": "1", "deviation": "absent", "note": "successful login with no browser session — automated" },
+        { "feature": "asn_is_hosting", "value": 1, "baseline": "0", "deviation": "present", "note": "account accessed from a datacentre range for the first time" },
+        { "feature": "is_off_hours", "value": 1, "baseline": "0", "deviation": "present", "note": "outside this account's normal activity window" }
+      ]
+    }
+  ],
+
+  "recommendations": {
+    "containment": [
+      { "id": "PB-C-011", "action": "Block ASN 14061 at the WAF, 30-minute TTL", "owner": "Network Ops", "eta_min": 5, "rollback": "Remove ASN rule; verify legitimate traffic restored" },
+      { "id": "PB-C-024", "action": "Force password reset for the 3 targeted accounts", "owner": "IAM", "eta_min": 10, "rollback": "N/A — safe-forward" },
+      { "id": "PB-C-031", "action": "Restrict /actuator/* to internal networks at the gateway", "owner": "Platform", "eta_min": 10, "rollback": "Restore previous gateway route config" }
+    ],
+    "eradication": [
+      { "id": "PB-E-007", "action": "Revoke all active sessions for u_8f2a1c", "owner": "IAM", "eta_min": 2, "rollback": "N/A" },
+      { "id": "PB-E-012", "action": "Audit metrics-agent for post-exploitation artefacts", "owner": "SOC", "eta_min": 45, "rollback": "N/A — read-only" }
+    ],
+    "recovery": [
+      { "id": "PB-R-003", "action": "Patch metrics-agent to Spring Boot 2.6.6 or later (CVE-2022-22965)", "owner": "Platform", "eta_min": 60, "rollback": "Redeploy previous image tag" },
+      { "id": "PB-R-009", "action": "Enable step-up MFA on /login for 24 hours", "owner": "AppSec", "eta_min": 15, "rollback": "Disable step-up policy" }
+    ],
+    "hunt": [
+      { "id": "PB-H-002", "action": "Search all authentication events from ASN 14061 over the last 30 days", "owner": "SOC", "eta_min": 15, "query": "SELECT * FROM events WHERE asn = 14061 AND ts > now() - interval '30 days'" },
+      { "id": "PB-H-005", "action": "Identify any other host exposing /actuator/* externally", "owner": "Platform", "eta_min": 30, "query": "SELECT DISTINCT asset_id FROM events WHERE url_path LIKE '/actuator/%' AND http_status = 200" }
+    ]
+  },
+
+  "narrative": "Between 09:14 and 10:02 UTC, nine requests reached Sample Store from two addresses inside 185.220.101.0/24 (AS14061, DigitalOcean). No single request was alarming: each scored P4 in isolation, request rates stayed inside normal bounds, and per-account authentication failures never reached the lockout threshold.\n\nCorrelated on shared subnet and ASN within a 48-minute window, the pattern is unambiguous. Five requests enumerated sensitive paths (/.env, /.git/config, /wp-admin/, /phpmyadmin/, /actuator/env). The fifth returned HTTP 200: metrics-agent exposes a Spring Boot Actuator environment endpoint, which maps to CVE-2022-22965 — listed in the CISA Known Exploited Vulnerabilities catalogue with an EPSS score of 0.974. Four further requests attempted authentication against three separate accounts, one attempt each, and the final attempt succeeded against u_8f2a1c from a datacentre address outside that account's normal activity window.\n\nNone of the nine requests executed the Adamantine browser sensor, indicating direct API access rather than browser traffic throughout.\n\nThis incident shares an ASN, technique set, and timing profile with INC-0142 (23 July, analyst-confirmed malicious) at 87% similarity."
+}

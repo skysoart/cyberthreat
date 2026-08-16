@@ -1,0 +1,22 @@
+{
+  "activeProfiles": ["production"],
+  "propertySources": [
+    {
+      "name": "systemProperties",
+      "properties": {
+        "java.version": { "value": "11.0.16" },
+        "spring.application.name": { "value": "sample-store-metrics" },
+        "server.port": { "value": "8081" }
+      }
+    },
+    {
+      "name": "applicationConfig: [classpath:/application.yml]",
+      "properties": {
+        "spring.datasource.url": { "value": "jdbc:postgresql://orders-db:5432/store" },
+        "spring.datasource.username": { "value": "store_metrics" },
+        "spring.datasource.password": { "value": "******" },
+        "management.endpoints.web.exposure.include": { "value": "*" }
+      }
+    }
+  ]
+}

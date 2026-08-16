@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Cart - Sample Store</title>
+    <link rel="stylesheet" href="static/store.css">
+</head>
+<body>
+    <header class="header">
+        <div class="logo">Sample Store</div>
+        <div class="nav-links">
+            <a href="/">Home</a>
+            <a href="/products">Shop</a>
+            <a href="/cart" class="cart-nav">Cart (<span id="cart-count">0</span>)</a>
+            <a href="/account">Account</a>
+        </div>
+    </header>
+    
+    <div class="container">
+        <h1>Your Cart</h1>
+        <div id="cartItems" style="margin-top: 30px;">
+            <p>Your cart is empty.</p>
+        </div>
+        <div style="margin-top: 40px;">
+            <a href="/checkout" class="btn" style="width: auto;">Proceed to Checkout</a>
+        </div>
+    </div>
+    
+    <footer class="footer">
+        <p>&copy; 2026 Sample Store.</p>
+    </footer>
+    
+    <script src="static/store.js"></script>
+    <script src="adamantine-sensor.js" data-key="adm_live_demo" defer></script>
+</body>
+</html>

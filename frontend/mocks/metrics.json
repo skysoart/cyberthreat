@@ -1,0 +1,49 @@
+{
+  "funnel": {
+    "events": 52418,
+    "candidate_alerts": 3506,
+    "incidents": 41,
+    "actionable": 6
+  },
+  "model": {
+    "precision": 0.968,
+    "recall": 0.941,
+    "f1": 0.954,
+    "pr_auc": 0.981
+  },
+  "pr_curve": [
+    { "recall": 0.05, "precision": 1.000 },
+    { "recall": 0.10, "precision": 0.999 },
+    { "recall": 0.20, "precision": 0.997 },
+    { "recall": 0.30, "precision": 0.995 },
+    { "recall": 0.40, "precision": 0.993 },
+    { "recall": 0.50, "precision": 0.991 },
+    { "recall": 0.60, "precision": 0.988 },
+    { "recall": 0.70, "precision": 0.983 },
+    { "recall": 0.80, "precision": 0.976 },
+    { "recall": 0.85, "precision": 0.971 },
+    { "recall": 0.90, "precision": 0.962 },
+    { "recall": 0.94, "precision": 0.948 },
+    { "recall": 0.97, "precision": 0.901 },
+    { "recall": 1.00, "precision": 0.744 }
+  ],
+  "top_k_precision": [
+    { "k": 5, "precision": 1.00 },
+    { "k": 10, "precision": 0.90 },
+    { "k": 20, "precision": 0.85 },
+    { "k": 41, "precision": 0.78 }
+  ],
+  "triage": {
+    "manual_estimate_seconds": 900,
+    "adamantine_seconds": 38,
+    "reduction_pct": 95.8
+  },
+  "correlation": {
+    "events_per_incident_mean": 121.4,
+    "events_per_incident_median": 14,
+    "incidents_multi_source": 27,
+    "incidents_with_historical_match": 11,
+    "incidents_escalated_by_correlation": 4,
+    "note": "incidents_escalated_by_correlation counts incidents rated P1 or P2 whose highest-scoring individual event was P3 or below. These are the cases event-level alerting would have missed."
+  }
+}

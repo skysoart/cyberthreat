@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SOC Command Center</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="app-container">
+
+        
+        <main class="main-content">
+            <header>
+                <h1>Dashboard Overview</h1>
+                <div class="time-range">Last 30 Days</div>
+            </header>
+            
+            <section class="kpi-cards">
+                <div class="card">
+                    <h3>Events Processed</h3>
+                    <div class="value" id="kpiEvents">0</div>
+                    <div class="subtext">In the last 30 days</div>
+                </div>
+                <div class="card">
+                    <h3>Open Incidents</h3>
+                    <div class="value" id="kpiIncidents">0</div>
+                    <div class="subtext">Requires triage</div>
+                </div>
+                <div class="card alert">
+                    <h3>P1 Critical</h3>
+                    <div class="value" id="kpiP1">0</div>
+                    <div class="subtext">Immediate action required</div>
+                </div>
+                <div class="card success">
+                    <h3>Noise Reduction</h3>
+                    <div class="value" id="kpiNoise">0%</div>
+                    <div class="subtext">Events grouped into incidents</div>
+                </div>
+            </section>
+            
+            <section class="charts-row">
+                <div class="card chart-container">
+                    <h3>Threat Trend (Last 30 Days)</h3>
+                    <canvas id="trendChart"></canvas>
+                </div>
+                <div class="card chart-container small">
+                    <h3>Incidents by Priority</h3>
+                    <canvas id="priorityChart"></canvas>
+                </div>
+            </section>
+            
+            <section class="data-row">
+                <div class="card table-container">
+                    <h3>Prioritised Incident Queue</h3>
+                    <table id="incidentsTable">
+                        <thead>
+                            <tr>
+                                <th>Incident ID</th>
+                                <th>Title</th>
+                                <th>Priority</th>
+                                <th>Risk Score</th>
+                                <th>Top ASN</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <!-- Populated by JS -->
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <!-- Vendored Chart.js -->
+    <script src="static/vendor/chart.min.js"></script>
+    <script src="static/api.js"></script>
+    <script src="static/layout.js"></script>
+    <script src="app.js"></script>
+</body>
+</html>

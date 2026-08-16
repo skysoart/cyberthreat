@@ -1,0 +1,33 @@
+# Python
+.venv/
+__pycache__/
+*.py[cod]
+
+# Secrets
+.env
+*.key
+
+# Database — regenerate with scripts/seed.py
+*.db
+*.sqlite3
+
+# Model artifacts — regenerate with ml/train.py
+backend/ml/artifacts/
+*.joblib
+*.pkl
+
+# Generated + cached data
+backend/data/feeds/
+data/training.csv
+*.csv.gz
+
+# Planning / briefs — local only
+PLAN.md
+docs/*
+!docs/api-contract.md
+
+# OS / editor
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/

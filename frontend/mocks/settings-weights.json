@@ -1,0 +1,8 @@
+{
+  "model_confidence": 0.20,
+  "asset_criticality": 0.20,
+  "exploitability": 0.20,
+  "blast_radius": 0.15,
+  "kill_chain_depth": 0.15,
+  "recency": 0.10
+}

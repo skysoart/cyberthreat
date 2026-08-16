@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Metrics</title>
+    <link rel="stylesheet" href="style.css">
+    <style>
+        .metrics-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+        
+        .funnel-container { display: flex; flex-direction: column; align-items: center; gap: 10px; margin-top: 20px; }
+        .funnel-stage { display: flex; align-items: center; justify-content: space-between; width: 100%; max-width: 400px; background: var(--bg-dark); padding: 15px 20px; border-radius: 6px; position: relative; }
+        .funnel-stage::after { content: ''; position: absolute; bottom: -15px; left: 50%; transform: translateX(-50%); border-left: 10px solid transparent; border-right: 10px solid transparent; border-top: 10px solid var(--bg-dark); }
+        .funnel-stage:last-child::after { display: none; }
+        
+        .funnel-label { font-size: 14px; font-weight: bold; color: var(--text-secondary); text-transform: uppercase; }
+        .funnel-val { font-size: 24px; font-weight: bold; font-family: monospace; }
+        .funnel-drop { position: absolute; right: -80px; top: 50%; transform: translateY(-50%); font-size: 13px; color: var(--accent-red); font-weight: bold; }
+        
+        .triage-box { background: var(--bg-dark); padding: 20px; border-radius: 6px; text-align: center; margin-bottom: 20px; }
+        .triage-highlight { font-size: 36px; font-weight: bold; color: var(--accent-blue); margin: 10px 0; }
+        
+        .correlation-box { background: rgba(59, 130, 246, 0.05); border: 1px solid rgba(59, 130, 246, 0.2); padding: 20px; border-radius: 6px; }
+        .corr-stat { display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid var(--border-color); }
+        .corr-stat:last-child { border-bottom: none; }
+    </style>
+</head>
+<body>
+    <div class="app-container">
+        <!-- layout.js injects sidebar -->
+        
+        <main class="main-content">
+            <header style="margin-bottom: 30px;">
+                <h1>Platform Metrics</h1>
+            </header>
+            
+            <div id="loadingState"></div>
+            
+            <div id="metricsContent" style="display:none;" class="metrics-grid">
+                
+                <!-- Left Column -->
+                <div style="display: flex; flex-direction: column; gap: 20px;">
+                    
+                    <section class="card" style="flex: 1;">
+                        <h3>Alert Funnel</h3>
+                        <div class="funnel-container" id="funnelVis"></div>
+                    </section>
+                    
+                    <section class="card">
+                        <h3>Triage Time Comparison</h3>
+                        <div class="grid-2">
+                            <div class="triage-box">
+                                <div style="color:var(--text-secondary); font-size: 13px; text-transform: uppercase;">Manual Estimate</div>
+                                <div class="triage-highlight" id="trManual" style="color: #64748b;"></div>
+                                <div style="font-size: 12px; color:var(--text-secondary);">Seconds per incident</div>
+                            </div>
+                            <div class="triage-box" style="border: 2px solid var(--accent-blue);">
+                                <div style="color:var(--text-secondary); font-size: 13px; text-transform: uppercase;">Adamantine</div>
+                                <div class="triage-highlight" id="trAda"></div>
+                                <div style="font-size: 12px; color:var(--text-secondary);">Seconds per incident</div>
+                            </div>
+                        </div>
+                        <div style="text-align: center; font-size: 18px; font-weight: bold; color: var(--accent-blue);">
+                            <span id="trReduction"></span>% Reduction in triage time
+                        </div>
+                    </section>
+                </div>
+                
+                <!-- Right Column -->
+                <div style="display: flex; flex-direction: column; gap: 20px;">
+                    
+                    <section class="card" style="padding-bottom: 30px;">
+                        <h3>Precision-Recall Curve</h3>
+                        <div style="position: relative; height: 250px; width: 100%;">
+                            <canvas id="prChart"></canvas>
+                        </div>
+                    </section>
+                    
+                    <section class="card">
+                        <h3>Top-K Precision</h3>
+                        <div style="position: relative; height: 180px; width: 100%;">
+                            <canvas id="topkChart"></canvas>
+                        </div>
+                    </section>
+                    
+                    <section class="card correlation-box">
+                        <h3 style="color: var(--accent-blue); margin-bottom: 15px;">Correlation Value</h3>
+                        
+                        <div class="corr-stat">
+                            <span>Events per incident (Mean / Median)</span>
+                            <strong style="font-family:monospace" id="corrEvents"></strong>
+                        </div>
+                        <div class="corr-stat">
+                            <span>Incidents combining multiple sources</span>
+                            <strong style="font-family:monospace" id="corrSources"></strong>
+                        </div>
+                        <div class="corr-stat">
+                            <span>Incidents matched to history</span>
+                            <strong style="font-family:monospace" id="corrHistory"></strong>
+                        </div>
+                        <div class="corr-stat" style="background: rgba(239,68,68,0.1); padding: 15px; margin-top: 10px; border-radius: 4px;">
+                            <div>
+                                <div style="color: var(--accent-red); font-weight: bold; font-size: 16px;">Incidents Escalated by Correlation</div>
+                                <div style="font-size: 12px; color: var(--text-secondary); margin-top: 5px; line-height: 1.4;" id="corrNote"></div>
+                            </div>
+                            <strong style="font-size: 24px; color: var(--accent-red);" id="corrEscalated"></strong>
+                        </div>
+                    </section>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script src="static/vendor/chart.min.js"></script>
+    <script src="static/api.js"></script>
+    <script src="static/layout.js"></script>
+    <script src="static/metrics.js"></script>
+</body>
+</html>

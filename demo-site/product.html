@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Product - Sample Store</title>
+    <link rel="stylesheet" href="static/store.css">
+</head>
+<body>
+    <header class="header">
+        <div class="logo">Sample Store</div>
+        <div class="nav-links">
+            <a href="/">Home</a>
+            <a href="/products">Shop</a>
+            <a href="/cart" class="cart-nav">Cart (<span id="cart-count">0</span>)</a>
+            <a href="/account">Account</a>
+        </div>
+    </header>
+    
+    <div class="container" id="productContainer">
+        <!-- Rendered via JS -->
+    </div>
+    
+    <footer class="footer">
+        <p>&copy; 2026 Sample Store.</p>
+    </footer>
+    
+    <script src="static/products.js"></script>
+    <script src="static/store.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const id = Number(window.location.pathname.split('/').pop());
+            const product = getProductById(id);
+            const container = document.getElementById('productContainer');
+            
+            if (!product) {
+                container.innerHTML = `<h1>Product Not Found</h1><p>The product you are looking for does not exist.</p>`;
+                return;
+            }
+            
+            document.title = `${product.name} - Sample Store`;
+            
+            container.innerHTML = `
+                <div style="display: flex; gap: 40px; flex-wrap: wrap;">
+                    <div style="flex: 1; min-width: 300px; height: 400px; background: ${product.gradient}; border-radius: 8px;"></div>
+                    <div style="flex: 1; min-width: 300px;">
+                        <div style="color: var(--text-muted); text-transform: uppercase; font-size: 12px; margin-bottom: 10px;">${product.category}</div>
+                        <h1 style="margin-bottom: 15px;">${product.name}</h1>
+                        <div style="font-size: 24px; font-weight: bold; margin-bottom: 20px;">$${product.price}</div>
+                        <div style="margin-bottom: 20px;">Rating: ⭐ ${product.rating}/5</div>
+                        <p style="color: var(--text-muted); margin-bottom: 30px;">${product.description}</p>
+                        <p style="margin-bottom: 30px; font-size: 14px;">Stock: ${product.stock} items remaining</p>
+                        <button class="btn" onclick="addToCart(${product.id})" style="width: auto; padding: 15px 40px;">Add to Cart</button>
+                    </div>
+                </div>
+            `;
+        });
+    </script>
+    <script src="adamantine-sensor.js" data-key="adm_live_demo" defer></script>
+</body>
+</html>

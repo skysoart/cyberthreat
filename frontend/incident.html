@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Incident Detail</title>
+    <link rel="stylesheet" href="style.css">
+    <style>
+        .incident-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 20px; }
+        .incident-header-left { display: flex; flex-direction: column; gap: 5px; }
+        .incident-title-row { display: flex; align-items: center; gap: 15px; }
+        .incident-meta { color: var(--text-secondary); font-size: 13px; }
+        
+        .header-actions { display: flex; gap: 10px; }
+        .btn-confirm { background: var(--accent-red); color: white; border: none; padding: 8px 16px; border-radius: 4px; cursor: pointer; }
+        .btn-fp { background: var(--bg-hover); color: var(--text-primary); border: 1px solid var(--border-color); padding: 8px 16px; border-radius: 4px; cursor: pointer; }
+        
+        /* 10 Sections Grid */
+        .incident-layout { display: grid; gap: 20px; }
+        .section-card { background: var(--bg-panel); border: 1px solid var(--border-color); border-radius: 8px; padding: 20px; }
+        .section-card h3 { margin-bottom: 15px; border-bottom: 1px solid var(--border-color); padding-bottom: 10px; font-size: 14px; text-transform: uppercase; letter-spacing: 0.5px; color: var(--text-secondary); }
+        
+        /* Risk Breakdown */
+        .risk-breakdown-labels { display: flex; justify-content: space-between; font-size: 11px; margin-top: 10px; color: var(--text-secondary); }
+        .risk-label { text-align: center; flex: 1; }
+        
+        /* Kill Chain */
+        .kill-chain-container { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+        .kc-stage { flex: 1; background: var(--bg-dark); border: 1px solid var(--border-color); padding: 15px; border-radius: 6px; text-align: center; position: relative; }
+        .kc-stage:not(:last-child)::after { content: '→'; position: absolute; right: -15px; top: 50%; transform: translateY(-50%); color: var(--text-secondary); z-index: 10; font-size: 20px; }
+        .kc-tactic { font-weight: bold; font-size: 14px; margin-bottom: 5px; }
+        .kc-tech { font-size: 12px; color: var(--text-secondary); }
+        
+        /* Entity Graph styling overrides */
+        #entityGraphContainer { text-align: center; padding: 20px; background: #0a0b0e; border-radius: 6px; overflow: hidden; }
+        #entityGraphContainer svg { max-width: 100%; height: auto; }
+        .node-ip { fill: #3b82f6; }
+        .node-asn { fill: #8b5cf6; }
+        .node-subnet { fill: #6366f1; }
+        .node-asset { fill: #10b981; }
+        .node-cve { fill: #ef4444; }
+        .node-user { fill: #f59e0b; }
+        .edge { stroke: #2d3748; stroke-width: 1.5; }
+        .edge-weak { stroke: #2d3748; stroke-width: 1; stroke-dasharray: 4; }
+        .node-label { fill: #e2e8f0; font-size: 12px; font-family: monospace; }
+        
+        /* Events Table */
+        .events-table th, .events-table td { padding: 10px; text-align: left; border-bottom: 1px solid var(--border-color); font-size: 13px; }
+        .events-table th { color: var(--text-secondary); font-weight: 600; }
+        
+        /* CRITICAL CONTRAST SECTION */
+        .critical-contrast-box { display: flex; align-items: center; gap: 20px; padding: 15px; background: rgba(239, 68, 68, 0.05); border: 1px solid rgba(239, 68, 68, 0.2); border-radius: 6px; margin-bottom: 20px; }
+        .contrast-arrow { font-size: 24px; color: var(--text-secondary); }
+        
+        /* Recommendations */
+        .rec-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+        .rec-group h4 { margin-bottom: 10px; color: var(--accent-blue); text-transform: uppercase; font-size: 12px; }
+        .rec-item { background: var(--bg-dark); padding: 15px; border-radius: 6px; margin-bottom: 10px; border-left: 3px solid var(--accent-blue); }
+        .rec-id { font-family: monospace; font-size: 11px; background: var(--bg-hover); padding: 2px 6px; border-radius: 3px; }
+        .rec-query { background: #000; padding: 10px; border-radius: 4px; font-family: monospace; font-size: 12px; margin-top: 10px; color: #10b981; overflow-x: auto;}
+    </style>
+</head>
+<body>
+    <div class="app-container">
+        <!-- layout.js injects sidebar here -->
+        
+        <main class="main-content" id="incidentApp">
+            <div id="loadingState"></div>
+            
+            <div id="incidentContent" style="display:none;" class="incident-layout">
+                
+                <!-- 1. Header -->
+                <section class="incident-header">
+                    <div class="incident-header-left">
+                        <div class="incident-title-row">
+                            <span class="priority-pill" id="incPriority"></span>
+                            <h1 id="incTitle"></h1>
+                        </div>
+                        <div class="incident-meta">
+                            <span id="incId"></span> • 
+                            Risk Score: <strong id="incRisk" style="color: white; font-size: 16px;"></strong> • 
+                            Opened: <span id="incOpened"></span> • 
+                            Last Seen: <span id="incLastSeen"></span>
+                        </div>
+                    </div>
+                    <div class="header-actions">
+                        <button class="btn-confirm" onclick="submitFeedback('confirmed_threat')">Confirm Threat</button>
+                        <button class="btn-fp" onclick="submitFeedback('false_positive')">Mark False Positive</button>
+                    </div>
+                </section>
+                
+                <!-- P1 vs P4 Contrast Banner (Helper) -->
+                <div class="critical-contrast-box">
+                    <div>
+                        <div style="font-size: 12px; color: var(--text-secondary); text-transform: uppercase;">Incident Priority</div>
+                        <div class="priority-pill" id="contrastIncPriority" style="display: inline-block; margin-top: 5px; font-size: 16px; padding: 8px 16px;"></div>
+                    </div>
+                    <div class="contrast-arrow">← correlated from ←</div>
+                    <div>
+                        <div style="font-size: 12px; color: var(--text-secondary); text-transform: uppercase;">Individual Event Priorities</div>
+                        <div class="priority-pill color-P4" style="display: inline-block; margin-top: 5px; font-size: 16px; padding: 8px 16px;">P4</div>
+                    </div>
+                    <div style="margin-left: auto; max-width: 400px; font-size: 13px; color: var(--text-secondary);">
+                        Every single event in this incident was individually classified as low-priority noise (P4). Our correlation engine identified the campaign, escalating the true risk to Critical.
+                    </div>
+                </div>
+
+                <!-- 2. Risk Breakdown -->
+                <section class="section-card">
+                    <h3>Risk Breakdown</h3>
+                    <div class="stacked-bar-container" id="riskBar" style="height: 24px; border-radius: 12px;"></div>
+                    <div class="risk-breakdown-labels" id="riskLabels"></div>
+                </section>
+
+                <!-- 3. Summary -->
+                <section class="section-card">
+                    <h3>AI Summary</h3>
+                    <div id="incSummary" style="font-size: 14px; line-height: 1.6;"></div>
+                </section>
+
+                <!-- 4. Kill Chain -->
+                <section class="section-card">
+                    <h3>Kill Chain Timeline</h3>
+                    <div class="kill-chain-container" id="killChain"></div>
+                </section>
+                
+                <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 20px;">
+                    <!-- 5. Entity Graph -->
+                    <section class="section-card">
+                        <h3>Entity Graph</h3>
+                        <div id="entityGraphContainer"></div>
+                    </section>
+                    
+                    <div style="display: flex; flex-direction: column; gap: 20px;">
+                        <!-- 6. Threat Intel -->
+                        <section class="section-card">
+                            <h3>Threat Intelligence</h3>
+                            <div id="threatIntel"></div>
+                        </section>
+                        
+                        <!-- 7. Similar Past Incident -->
+                        <section class="section-card">
+                            <h3>Similar Past Incident</h3>
+                            <div id="similarIncident"></div>
+                        </section>
+                    </div>
+                </div>
+
+                <!-- 8. Events Table (P4 contrast focus) -->
+                <section class="section-card">
+                    <h3>Correlated Events Log</h3>
+                    <table class="events-table" style="width: 100%; border-collapse: collapse;">
+                        <thead>
+                            <tr>
+                                <th>Time</th>
+                                <th>Source IP</th>
+                                <th>URL Path</th>
+                                <th>Status</th>
+                                <th>Predicted Class</th>
+                                <th>Confidence</th>
+                                <th>Event Priority</th>
+                            </tr>
+                        </thead>
+                        <tbody id="eventsTbody"></tbody>
+                    </table>
+                </section>
+
+                <!-- 9. Recommendations -->
+                <section class="section-card">
+                    <h3>Playbook Recommendations</h3>
+                    <div class="rec-grid" id="recommendations"></div>
+                </section>
+
+                <!-- 10. Narrative -->
+                <section class="section-card">
+                    <h3>Incident Narrative</h3>
+                    <div id="incNarrative" style="font-size: 14px; line-height: 1.6;"></div>
+                </section>
+                
+            </div>
+        </main>
+    </div>
+
+    <script src="static/api.js"></script>
+    <script src="static/layout.js"></script>
+    <script src="static/incident.js"></script>
+</body>
+</html>

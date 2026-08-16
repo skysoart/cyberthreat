@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sample Store</title>
+    <link rel="stylesheet" href="static/store.css">
+</head>
+<body>
+    <header class="header">
+        <div class="logo">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 8px; vertical-align: middle;">
+                <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
+                <polyline points="9 22 9 12 15 12 15 22"></polyline>
+            </svg>
+            Sample Store
+        </div>
+        <nav class="nav-links">
+            <a href="/">Home</a>
+            <a href="/products">Shop Collection</a>
+            <a href="/account">Account</a>
+            <a href="/cart" class="cart-nav">
+                Cart (<span id="cart-count">0</span>)
+            </a>
+        </nav>
+    </header>
+    
+    <main>
+        <!-- Hero Section -->
+        <section class="hero-section">
+            <div class="hero-content">
+                <h1 class="hero-title">Elevate Your Everyday Space</h1>
+                <p class="hero-subtitle">Discover our curated collection of artisanal homewares, designed to bring warmth and character to modern living.</p>
+                <a href="/products" class="btn btn-large">Shop the Collection</a>
+            </div>
+            <div class="hero-visual">
+                <div class="hero-abstract-art"></div>
+            </div>
+        </section>
+
+        <!-- Featured Categories -->
+        <section class="featured-section">
+            <div class="container">
+                <div class="section-header">
+                    <h2>Curated For You</h2>
+                    <a href="/products" class="text-link">View all products &rarr;</a>
+                </div>
+                
+                <div class="product-grid" id="featuredGrid">
+                    <!-- Injected via JS -->
+                </div>
+            </div>
+        </section>
+        
+        <!-- Value Prop -->
+        <section class="values-section">
+            <div class="container values-grid">
+                <div class="value-item">
+                    <h3>Sustainable Materials</h3>
+                    <p>Ethically sourced and crafted to last a lifetime.</p>
+                </div>
+                <div class="value-item">
+                    <h3>Artisan Crafted</h3>
+                    <p>Made by independent makers from around the world.</p>
+                </div>
+                <div class="value-item">
+                    <h3>Free Shipping</h3>
+                    <p>On all orders over $150 within the mainland.</p>
+                </div>
+            </div>
+        </section>
+    </main>
+    
+    <footer class="footer">
+        <div class="footer-content">
+            <div class="footer-brand">
+                <h3>Sample Store</h3>
+                <p>Quality homewares for everyday life.</p>
+            </div>
+            <div class="footer-links">
+                <a href="#">Terms of Service</a>
+                <a href="#">Privacy Policy</a>
+                <a href="/admin">Staff Portal</a>
+            </div>
+        </div>
+        <p class="copyright">&copy; 2026 Sample Store. All rights reserved.</p>
+    </footer>
+    
+    <!-- Dependencies for rendering products -->
+    <script src="static/products.js"></script>
+    <script src="static/store.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // Render 4 featured products
+            const grid = document.getElementById('featuredGrid');
+            const items = getProductsPage(1, 4);
+            
+            items.forEach((p, i) => {
+                const card = document.createElement('a');
+                card.href = `/products/${p.id}`;
+                card.className = 'product-card';
+                card.style.transitionDelay = `${i * 100}ms`;
+                card.innerHTML = `
+                    <div class="product-img" style="background: ${p.gradient}"></div>
+                    <div class="product-info">
+                        <div class="product-category">${p.category}</div>
+                        <div class="product-title">${p.name}</div>
+                        <div class="product-price">$${p.price}</div>
+                    </div>
+                `;
+                grid.appendChild(card);
+            });
+            
+            // Re-trigger intersection observer for newly added elements
+            if(window.setupIntersectionObserver) window.setupIntersectionObserver();
+        });
+    </script>
+    <script src="adamantine-sensor.js" data-key="adm_live_demo" defer></script>
+</body>
+</html>

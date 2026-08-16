@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Login - Sample Store</title>
+    <link rel="stylesheet" href="static/store.css">
+</head>
+<body>
+    <header class="header">
+        <div class="logo">Sample Store</div>
+        <div class="nav-links">
+            <a href="/">Home</a>
+            <a href="/products">Shop</a>
+            <a href="/cart" class="cart-nav">Cart (<span id="cart-count">0</span>)</a>
+            <a href="/account">Account</a>
+        </div>
+    </header>
+    
+    <div class="container">
+        <div class="form-container">
+            <h1 style="margin-bottom: 20px; text-align: center;">Sign In</h1>
+            <form id="loginForm">
+                <div class="form-group">
+                    <label>Email address</label>
+                    <input type="email" name="email" id="email" required>
+                </div>
+                <div class="form-group">
+                    <label>Password</label>
+                    <input type="password" name="password" id="password" required>
+                </div>
+                <div class="error-msg" id="loginError"></div>
+                <button type="submit" class="btn" style="margin-top: 15px;">Sign In</button>
+            </form>
+            <div style="text-align: center; margin-top: 20px; font-size: 14px;">
+                Don't have an account? <a href="/register" style="color: var(--accent); font-weight: bold;">Register here</a>
+            </div>
+            <!--
+            Test accounts:
+            alice@samplestore.test / demo1234
+            bob@samplestore.test / demo1234
+            carol@samplestore.test / demo1234
+            -->
+        </div>
+    </div>
+    
+    <footer class="footer">
+        <p>&copy; 2026 Sample Store.</p>
+    </footer>
+    
+    <script src="static/store.js"></script>
+    <script src="adamantine-sensor.js" data-key="adm_live_demo" defer></script>
+</body>
+</html>

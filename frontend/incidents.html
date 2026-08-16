@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Incident Queue</title>
+    <link rel="stylesheet" href="style.css">
+    <style>
+        .queue-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+        .filters { display: flex; gap: 15px; }
+        .filters select { padding: 8px 12px; background: var(--bg-panel); border: 1px solid var(--border-color); color: var(--text-primary); border-radius: 4px; }
+        
+        .queue-table { width: 100%; border-collapse: collapse; }
+        .queue-table th, .queue-table td { padding: 12px 15px; text-align: left; border-bottom: 1px solid var(--border-color); }
+        .queue-table th { color: var(--text-secondary); font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px; }
+        .queue-table tbody tr { transition: background 0.2s; cursor: pointer; }
+        .queue-table tbody tr:hover { background: var(--bg-hover); }
+        
+        .inline-risk-bar { width: 120px; height: 6px; border-radius: 3px; display: flex; overflow: hidden; background: var(--bg-dark); margin-top: 4px; }
+        .inline-risk-segment { height: 100%; }
+        
+        .sim-marker { font-size: 10px; background: rgba(59, 130, 246, 0.2); color: #60a5fa; padding: 2px 6px; border-radius: 4px; margin-left: 8px; border: 1px solid rgba(59, 130, 246, 0.4); }
+    </style>
+</head>
+<body>
+    <div class="app-container">
+        <!-- layout.js injects sidebar -->
+        
+        <main class="main-content">
+            <div class="queue-header">
+                <h1>Incident Queue</h1>
+                <div class="filters">
+                    <select id="filterPriority" onchange="applyFilters()">
+                        <option value="">All Priorities</option>
+                        <option value="P1">P1 Critical</option>
+                        <option value="P2">P2 High</option>
+                        <option value="P3">P3 Medium</option>
+                        <option value="P4">P4 Low</option>
+                    </select>
+                    <select id="filterStatus" onchange="applyFilters()">
+                        <option value="">All Statuses</option>
+                        <option value="open">Open</option>
+                        <option value="confirmed">Confirmed</option>
+                        <option value="false_positive">False Positive</option>
+                        <option value="closed">Closed</option>
+                    </select>
+                </div>
+            </div>
+            
+            <div id="loadingState"></div>
+            
+            <div class="card" style="padding: 0; overflow-x: auto;">
+                <table class="queue-table">
+                    <thead>
+                        <tr>
+                            <th>Priority</th>
+                            <th>Risk Score & Breakdown</th>
+                            <th>Incident Title</th>
+                            <th>Events</th>
+                            <th>Assets Affected</th>
+                            <th>Last Seen</th>
+                        </tr>
+                    </thead>
+                    <tbody id="incidentsTbody"></tbody>
+                </table>
+            </div>
+        </main>
+    </div>
+
+    <script src="static/api.js"></script>
+    <script src="static/layout.js"></script>
+    <script src="static/incidents.js"></script>
+</body>
+</html>
