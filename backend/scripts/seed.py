@@ -77,21 +77,21 @@ def seed_db():
         # ---- Products ----
         print("Seeding products...")
         products = [
-            Product(name="Matte Stool",   category="Desk",     price=45.0,  stock=100,
-                    description="A nicely crafted matte stool.",
-                    gradient="linear-gradient(135deg, hsl(120, 20%, 85%), hsl(160, 20%, 75%))"),
-            Product(name="Copper Kettle", category="Kitchen",  price=85.0,  stock=20,
-                    description="A lovely copper kettle for the modern kitchen.",
-                    gradient="linear-gradient(135deg, hsl(30, 20%, 85%), hsl(70, 20%, 75%))"),
-            Product(name="Linen Throw",   category="Textiles", price=120.0, stock=50,
-                    description="A warm linen throw.",
-                    gradient="linear-gradient(135deg, hsl(200, 20%, 85%), hsl(240, 20%, 75%))"),
-            Product(name="Walnut Tray",   category="Desk",     price=55.0,  stock=30,
-                    description="Elegant walnut serving tray.",
-                    gradient="linear-gradient(135deg, hsl(30, 30%, 70%), hsl(15, 25%, 60%))"),
-            Product(name="Slate Planter", category="Outdoor",  price=35.0,  stock=75,
-                    description="Minimalist slate planter.",
-                    gradient="linear-gradient(135deg, hsl(210, 10%, 65%), hsl(220, 12%, 55%))"),
+            Product(name="Wireless Bluetooth Headphones", category="ELECTRONICS", price=2499.0, stock=45,
+                    description="High-fidelity wireless over-ear headphones with active noise cancellation.",
+                    gradient="linear-gradient(135deg, #f5f5f7, #e5e5ea)"),
+            Product(name="Mechanical Gaming Keyboard", category="ELECTRONICS", price=3299.0, stock=30,
+                    description="RGB tactile mechanical keyboard with custom switches.",
+                    gradient="linear-gradient(135deg, #f5f5f7, #e5e5ea)"),
+            Product(name="Stainless Steel Water Bottle", category="HOME & KITCHEN", price=799.0, stock=120,
+                    description="Double-wall vacuum insulated flask keeping drinks cold.",
+                    gradient="linear-gradient(135deg, #f5f5f7, #e5e5ea)"),
+            Product(name="Smart LED Desk Lamp", category="HOME & OFFICE", price=1099.0, stock=60,
+                    description="Dimmable LED desk lamp with touch control.",
+                    gradient="linear-gradient(135deg, #f5f5f7, #e5e5ea)"),
+            Product(name="Adjustable Aluminum Laptop Stand", category="OFFICE", price=1299.0, stock=70,
+                    description="Ergonomic foldable aluminum riser supporting laptops up to 17 inches.",
+                    gradient="linear-gradient(135deg, #f5f5f7, #e5e5ea)"),
         ]
         db.add_all(products)
 

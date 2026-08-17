@@ -27,9 +27,9 @@ def seed_db():
         # Seed Products
         print("Seeding products...")
         products = [
-            Product(name="Matte Stool", category="Desk", price=45.0, stock=100, description="A nicely crafted matte stool.", gradient="linear-gradient(135deg, hsl(120, 20%, 85%), hsl(160, 20%, 75%))"),
-            Product(name="Copper Kettle", category="Kitchen", price=85.0, stock=20, description="A lovely copper kettle.", gradient="linear-gradient(135deg, hsl(30, 20%, 85%), hsl(70, 20%, 75%))"),
-            Product(name="Linen Throw", category="Textiles", price=120.0, stock=50, description="A warm linen throw.", gradient="linear-gradient(135deg, hsl(200, 20%, 85%), hsl(240, 20%, 75%))"),
+            Product(name="Wireless Bluetooth Headphones", category="ELECTRONICS", price=2499.0, stock=45, description="High-fidelity wireless over-ear headphones with active noise cancellation.", gradient="linear-gradient(135deg, #f5f5f7, #e5e5ea)"),
+            Product(name="Mechanical Gaming Keyboard", category="ELECTRONICS", price=3299.0, stock=30, description="RGB tactile mechanical keyboard with custom switches.", gradient="linear-gradient(135deg, #f5f5f7, #e5e5ea)"),
+            Product(name="Stainless Steel Water Bottle", category="HOME & KITCHEN", price=799.0, stock=120, description="Double-wall vacuum insulated flask keeping drinks cold.", gradient="linear-gradient(135deg, #f5f5f7, #e5e5ea)"),
         ]
         db.add_all(products)
         

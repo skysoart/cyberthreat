@@ -65,7 +65,7 @@
                 </div>
                 <div class="value-item">
                     <h3>Free Shipping</h3>
-                    <p>On all orders over $150 within the mainland.</p>
+                    <p>On all orders over ₹1,500 within the mainland.</p>
                 </div>
             </div>
         </section>
@@ -107,7 +107,7 @@
                     <div class="product-info">
                         <div class="product-category">${p.category}</div>
                         <div class="product-title">${p.name}</div>
-                        <div class="product-price">$${p.price}</div>
+                        <div class="product-price">₹${Number(p.price).toLocaleString('en-IN')}</div>
                     </div>
                 `;
                 grid.appendChild(card);

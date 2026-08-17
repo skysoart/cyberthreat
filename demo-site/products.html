@@ -50,7 +50,7 @@
                     <div class="product-info">
                         <div class="product-category">${p.category}</div>
                         <div class="product-title">${p.name}</div>
-                        <div class="product-price">$${p.price}</div>
+                        <div class="product-price">₹${Number(p.price).toLocaleString('en-IN')}</div>
                         <a href="/products/${p.id}" class="btn" style="margin-top: 12px; width: 100%;">View Details</a>
                     </div>
                 `;

@@ -17,12 +17,29 @@
     </header>
     
     <div class="container">
-        <h1>Your Cart</h1>
-        <div id="cartItems" style="margin-top: 30px;">
-            <p>Your cart is empty.</p>
-        </div>
-        <div style="margin-top: 40px;">
-            <a href="/checkout" class="btn" style="width: auto;">Proceed to Checkout</a>
+        <h1 style="margin-bottom: 30px;">Your Shopping Cart</h1>
+        
+        <div id="cartContainer" style="display: flex; gap: 40px; flex-wrap: wrap;">
+            <div id="cartItemsList" style="flex: 2; min-width: 320px;">
+                <!-- Rendered via JS -->
+            </div>
+            
+            <div id="cartSummary" style="flex: 1; min-width: 280px; background: var(--bg-surface); padding: 30px; border-radius: 12px; border: 1px solid var(--border); height: fit-content;">
+                <h3 style="margin-bottom: 20px; border-bottom: 1px solid var(--border); padding-bottom: 15px;">Order Summary</h3>
+                <div style="display: flex; justify-content: space-between; margin-bottom: 12px; font-size: 15px;">
+                    <span>Subtotal</span>
+                    <span id="cartSubtotal">₹0</span>
+                </div>
+                <div style="display: flex; justify-content: space-between; margin-bottom: 20px; font-size: 15px; color: #10b981;">
+                    <span>Shipping</span>
+                    <span>FREE</span>
+                </div>
+                <div style="display: flex; justify-content: space-between; margin-bottom: 25px; font-size: 20px; font-weight: 700; border-top: 1px solid var(--border); padding-top: 15px;">
+                    <span>Total</span>
+                    <span id="cartTotal">₹0</span>
+                </div>
+                <a href="/checkout" class="btn" style="width: 100%; text-align: center; padding: 16px;">Proceed to Checkout</a>
+            </div>
         </div>
     </div>
     
@@ -30,7 +47,75 @@
         <p>&copy; 2026 Sample Store.</p>
     </footer>
     
+    <script src="static/products.js"></script>
     <script src="static/store.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            renderCartPage();
+        });
+
+        function renderCartPage() {
+            const rawCart = JSON.parse(localStorage.getItem('cart') || '[]');
+            const listEl = document.getElementById('cartItemsList');
+            const subtotalEl = document.getElementById('cartSubtotal');
+            const totalEl = document.getElementById('cartTotal');
+            
+            if (!rawCart.length) {
+                listEl.innerHTML = `
+                    <div style="background: var(--bg-surface); padding: 40px; border-radius: 12px; text-align: center; border: 1px solid var(--border);">
+                        <p style="font-size: 18px; color: var(--text-muted); margin-bottom: 20px;">Your cart is currently empty.</p>
+                        <a href="/products" class="btn">Explore Products</a>
+                    </div>
+                `;
+                subtotalEl.textContent = '₹0';
+                totalEl.textContent = '₹0';
+                return;
+            }
+
+            let html = '';
+            let grandTotal = 0;
+
+            // Group items by ID
+            const counts = {};
+            rawCart.forEach(id => { counts[id] = (counts[id] || 0) + 1; });
+
+            Object.keys(counts).forEach(idStr => {
+                const id = Number(idStr);
+                const p = getProductById(id);
+                if (!p) return;
+                const qty = counts[idStr];
+                const itemTotal = p.price * qty;
+                grandTotal += itemTotal;
+
+                html += `
+                    <div style="display: flex; gap: 20px; background: var(--bg-surface); padding: 20px; border-radius: 10px; border: 1px solid var(--border); margin-bottom: 16px; align-items: center;">
+                        <div style="width: 90px; height: 90px; border-radius: 6px; overflow: hidden; background: #f5f5f7; flex-shrink: 0;">
+                            <img src="${p.image}" alt="${p.name}" style="width: 100%; height: 100%; object-fit: cover;">
+                        </div>
+                        <div style="flex-grow: 1;">
+                            <div style="font-size: 11px; font-weight: 600; color: var(--accent); letter-spacing: 1px; margin-bottom: 4px;">${p.category}</div>
+                            <h4 style="font-size: 16px; margin-bottom: 6px;">${p.name}</h4>
+                            <div style="font-size: 15px; font-weight: 600;">₹${p.price.toLocaleString('en-IN')} x ${qty} = ₹${itemTotal.toLocaleString('en-IN')}</div>
+                        </div>
+                        <button onclick="removeFromCart(${p.id})" style="background: none; border: 1px solid var(--border); padding: 8px 12px; border-radius: 4px; cursor: pointer; font-size: 13px; color: #ef4444;">Remove</button>
+                    </div>
+                `;
+            });
+
+            listEl.innerHTML = html;
+            const formattedTotal = '₹' + grandTotal.toLocaleString('en-IN');
+            subtotalEl.textContent = formattedTotal;
+            totalEl.textContent = formattedTotal;
+        }
+
+        function removeFromCart(id) {
+            let cart = JSON.parse(localStorage.getItem('cart') || '[]');
+            cart = cart.filter(itemId => itemId !== id);
+            localStorage.setItem('cart', JSON.stringify(cart));
+            updateCartCount();
+            renderCartPage();
+        }
+    </script>
     <script src="adamantine-sensor.js" data-key="adm_live_demo" defer></script>
 </body>
 </html>
