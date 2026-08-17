@@ -108,8 +108,12 @@ class Asset(Base):
     __tablename__ = "assets"
 
     asset_id = Column(String, primary_key=True, index=True)
+    name = Column(String, nullable=False)
+    kind = Column(String, nullable=False)
     criticality = Column(Float, nullable=False)   # 0.0–1.0
     software = Column(String, nullable=False)
+    cpe_product = Column(String, nullable=True)
+    version = Column(String, nullable=True)
 
 
 class Event(Base):

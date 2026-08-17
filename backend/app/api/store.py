@@ -85,7 +85,7 @@ def register_page():
 def register(user_in: UserCreate, db: Session = Depends(get_db)):
     existing = db.query(User).filter(User.email == user_in.email).first()
     if existing:
-        raise HTTPException(status_code=400, detail="Email already registered")
+        raise HTTPException(status_code=409, detail="Email already registered")
 
     uid = _make_user_id(user_in.email)
     hashed_pw = pwd_context.hash(user_in.password)

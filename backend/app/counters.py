@@ -53,7 +53,7 @@ class IPRateState:
         "payload_bytes_history",
         "session_start", "session_req_count",
         "_users_tried",
-        "_last_auth_failed",
+        "_last_auth_failed", "_last_email_tried"
     )
 
     def __init__(self):
@@ -68,8 +68,9 @@ class IPRateState:
         self.payload_bytes_history: deque = deque(maxlen=100)
         self.session_start: Optional[float] = None
         self.session_req_count: int = 0
-        self._users_tried: _RollingDeque = _RollingDeque(_WINDOW_60)
+        self._users_tried: deque = deque()
         self._last_auth_failed: bool = False
+        self._last_email_tried: str = ""
 
 
 class RateCounter:
@@ -77,6 +78,7 @@ class RateCounter:
 
     def __init__(self):
         self._state: Dict[str, IPRateState] = defaultdict(IPRateState)
+        self._user_fails: Dict[str, _RollingDeque] = defaultdict(lambda: _RollingDeque(_WINDOW_60))
 
     def _s(self, ip: str) -> IPRateState:
         return self._state[ip]
@@ -119,11 +121,17 @@ class RateCounter:
             st.resp_bytes_60.popleft()
 
     def record_auth_fail(self, ip: str, email: str = "") -> None:
+        now = time.monotonic()
         st = self._s(ip)
-        st.auth_fail_60.push()
+        st.auth_fail_60.push(now)
         st._last_auth_failed = True
+        st._last_email_tried = email
         if email:
-            st._users_tried.push()
+            cutoff = now - _WINDOW_60
+            st._users_tried.append((now, email))
+            while st._users_tried and st._users_tried[0][0] < cutoff:
+                st._users_tried.popleft()
+            self._user_fails[email].push(now)
 
     def record_auth_success(self, ip: str) -> None:
         st = self._s(ip)
@@ -153,7 +161,13 @@ class RateCounter:
 
         # Auth fail features
         auth_fail_ip_60 = st.auth_fail_60.count()
-        distinct_users_tried = st._users_tried.count()
+        
+        cutoff = now - _WINDOW_60
+        while st._users_tried and st._users_tried[0][0] < cutoff:
+            st._users_tried.popleft()
+        distinct_users_tried = len(set(e for _, e in st._users_tried))
+        
+        auth_fail_user_60 = self._user_fails[st._last_email_tried].count() if st._last_email_tried else 0
         auth_success_after_fails = 1 if st.auth_success_after_fail else 0
 
         # Path features
@@ -204,7 +218,7 @@ class RateCounter:
             "req_rate_60s": req_60,
             "req_rate_300s": req_300,
             "auth_fail_ip_60s": auth_fail_ip_60,
-            "auth_fail_user_60s": auth_fail_ip_60,    # approximation until per-user tracking added
+            "auth_fail_user_60s": auth_fail_user_60,
             "distinct_users_tried_60s": distinct_users_tried,
             "auth_success_after_fails": auth_success_after_fails,
             "unique_paths_60s": unique_paths,

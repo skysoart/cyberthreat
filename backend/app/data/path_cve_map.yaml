@@ -1,0 +1,93 @@
+# Adamantine — probed path -> CVE mapping.
+#
+# This is what turns a directory scan from "someone poked at us" into "someone
+# probed for a vulnerability we actually run". Every CVE listed here is real and
+# resolvable against CISA KEV and EPSS; scripts/fetch_feeds.py downloads both.
+#
+# `asset` names the asset that would answer that path on Sample Store. The
+# enrichment layer only spikes exploitability when the probed path maps to a CVE
+# AND assets.csv says we run the affected product AND the request got a 2xx.
+#
+# `hit_status` is the response code that means the probe SUCCEEDED.
+
+paths:
+  /actuator/env:
+    cve: CVE-2022-22965
+    name: Spring4Shell
+    product: spring_framework
+    asset: metrics-agent
+    hit_status: 200
+    note: Spring Boot Actuator environment endpoint exposed externally
+
+  /actuator/heapdump:
+    cve: CVE-2022-22965
+    name: Spring4Shell
+    product: spring_framework
+    asset: metrics-agent
+    hit_status: 200
+    note: heap dump exposes credentials in memory
+
+  /wp-admin/:
+    cve: CVE-2024-25600
+    name: WordPress Bricks RCE
+    product: wordpress
+    asset: blog-cms
+    hit_status: 200
+
+  /wp-content/plugins/:
+    cve: CVE-2024-25600
+    name: WordPress plugin enumeration
+    product: wordpress
+    asset: blog-cms
+    hit_status: 200
+
+  /_ignition/execute-solution:
+    cve: CVE-2021-3129
+    name: Laravel Ignition RCE
+    product: laravel
+    asset: catalogue-api
+    hit_status: 200
+
+  /cgi-bin/:
+    cve: CVE-2014-6271
+    name: Shellshock
+    product: bash
+    asset: cdn-edge
+    hit_status: 200
+
+  /solr/admin/cores:
+    cve: CVE-2019-17558
+    name: Apache Solr RCE
+    product: solr
+    asset: search-service
+    hit_status: 200
+
+  /console/login/LoginForm.jsp:
+    cve: CVE-2020-14882
+    name: Oracle WebLogic RCE
+    product: weblogic
+    asset: cdn-edge
+    hit_status: 200
+
+  /struts2-showcase/:
+    cve: CVE-2017-5638
+    name: Apache Struts RCE
+    product: struts
+    asset: catalogue-api
+    hit_status: 200
+
+# Sensitive paths with no specific CVE. These still set sensitive_path_hit and
+# still count as reconnaissance, they just do not spike exploitability.
+sensitive_no_cve:
+  - /.env
+  - /.git/config
+  - /.git/HEAD
+  - /phpmyadmin/
+  - /admin.php
+  - /config.json
+  - /backup.sql
+  - /.aws/credentials
+  - /server-status
+  - /api/v1/config
+  - /debug/pprof/
+  - /.DS_Store

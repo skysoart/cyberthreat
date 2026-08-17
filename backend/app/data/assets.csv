@@ -1,0 +1,11 @@
+asset_id,name,kind,criticality,software,cpe_product,version
+payments-api,Payments API,api,1.00,Stripe SDK,stripe_sdk,8.1.0
+orders-db,Orders Database,db,0.95,PostgreSQL 14,postgresql,14.9
+auth-service,Auth Service,api,0.90,Node 20,nodejs,20.11.0
+admin-portal,Admin Portal,web,0.85,React,react,18.2.0
+checkout-web,Checkout Web,web,0.80,Next.js,nextjs,14.0.3
+catalogue-api,Catalogue API,api,0.50,Spring Boot 2.5,spring_framework,2.5.12
+search-service,Search Service,api,0.40,Elasticsearch,elasticsearch,8.11.0
+cdn-edge,CDN Edge,edge,0.30,nginx 1.18,nginx,1.18.0
+blog-cms,Blog CMS,cms,0.20,WordPress 6.4,wordpress,6.4.1
+metrics-agent,Metrics Agent,agent,0.20,Spring Boot Actuator,spring_framework,2.5.12
