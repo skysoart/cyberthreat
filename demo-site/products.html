@@ -44,10 +44,15 @@
                 const card = document.createElement('div');
                 card.className = 'product-card';
                 card.innerHTML = `
-                    <div class="product-img" style="background: ${p.gradient}"></div>
-                    <div class="product-title">${p.name}</div>
-                    <div class="product-price">$${p.price}</div>
-                    <a href="/products/${p.id}" class="btn">View Details</a>
+                    <div class="product-img" style="background: ${p.gradient}">
+                        <img src="${p.image}" alt="${p.name}" loading="lazy" onerror="this.style.opacity='0'">
+                    </div>
+                    <div class="product-info">
+                        <div class="product-category">${p.category}</div>
+                        <div class="product-title">${p.name}</div>
+                        <div class="product-price">$${p.price}</div>
+                        <a href="/products/${p.id}" class="btn" style="margin-top: 12px; width: 100%;">View Details</a>
+                    </div>
                 `;
                 grid.appendChild(card);
             });
