@@ -1,4 +1,4 @@
-const USE_MOCKS = true; // flip to false when the backend is running
+const USE_MOCKS = false; // flip to false when the backend is running
 
 const MOCK_MAP = {
     '/api/v1/overview': 'overview.json',
