@@ -20,6 +20,10 @@ from backend.app.database import engine, Base, SessionLocal
 from backend.app.models.tables import (
     Product, User, Asset, Event, Incident, SettingsWeight
 )
+# Importing registers Feedback / ModelVersion / IncidentFingerprint on the same
+# Base, so create_all() below builds them too. Team 2 tables, no schema edit.
+import backend.app.models.security_tables  # noqa: F401
+from backend.scripts.generate_events import seed_events
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
@@ -111,12 +115,21 @@ def seed_db():
                     version=row["version"]
                 ))
 
-        db.flush()  # get IDs before seeding incidents/events
+        db.flush()  # get IDs before seeding events
 
-
+        # ---- Events ----
+        # 30 days of history: benign traffic plus five planted campaigns.
+        # EVENTS ONLY — no incidents. correlate() has to rediscover the
+        # campaigns from the events alone, which is the whole demonstration.
+        print("Seeding events (30 days of history)...")
+        stats = seed_events(db, Event)
+        print(f"  {stats['total']:,} events  "
+              f"{stats['first']:%Y-%m-%d} -> {stats['last']:%Y-%m-%d}")
+        print(f"  individual priorities: {stats['priorities']}")
 
         db.commit()
         print("=== Database seeded successfully! ===")
+        print("Next: python backend/scripts/verify_intelligence.py")
 
     except Exception as exc:
         db.rollback()

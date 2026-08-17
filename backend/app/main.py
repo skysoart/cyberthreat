@@ -48,6 +48,36 @@ app.include_router(store.router)
 app.include_router(telemetry.router)
 app.include_router(dashboard.router)
 
+
+# ---------------------------------------------------------------------------
+# Background correlation
+# ---------------------------------------------------------------------------
+# Events are classified at request time by the middleware, but incidents only
+# exist once correlation groups them. Running it on a timer is what makes the
+# live demo work: run an attack, wait a few seconds, watch it surface in the
+# queue without touching anything.
+#
+# A daemon thread rather than APScheduler — one less dependency to fail, and
+# it dies with the process instead of hanging shutdown.
+@app.on_event("startup")
+def _start_correlation_loop() -> None:
+    import threading
+    from backend.app.services.engine import get_engine
+
+    interval = int(os.environ.get("CORRELATE_INTERVAL_SECONDS", "15"))
+
+    def loop() -> None:
+        import time
+        while True:
+            time.sleep(interval)
+            try:
+                get_engine().correlate()
+            except Exception as exc:                     # never kill the thread
+                print(f"[correlate] {type(exc).__name__}: {exc}")
+
+    threading.Thread(target=loop, daemon=True, name="adamantine-correlate").start()
+    print(f"[startup] correlation loop running every {interval}s")
+
 # ---------------------------------------------------------------------------
 # Static mounts
 # ---------------------------------------------------------------------------
@@ -59,6 +89,17 @@ if os.path.exists("frontend/static"):
 
 if os.path.exists("frontend/mocks"):
     app.mount("/mocks", StaticFiles(directory="frontend/mocks"), name="dash-mocks")
+
+
+# The browser sensor. Every Sample Store page loads this; if it 404s the store
+# still works, it just stops producing browser telemetry and every visitor
+# starts looking like a bot.
+@app.get("/adamantine-sensor.js", include_in_schema=False)
+def adamantine_sensor():
+    path = "widget/adamantine-sensor.js"
+    if not os.path.exists(path):
+        return JSONResponse({"detail": "sensor not installed"}, status_code=404)
+    return FileResponse(path, media_type="application/javascript")
 
 # ---------------------------------------------------------------------------
 # Probe / honeypot paths — MUST return 404 per contract §7

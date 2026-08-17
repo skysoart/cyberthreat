@@ -30,27 +30,39 @@ share/python-wheels/
 .installed.cfg
 *.egg
 
-# Database — regenerate with scripts/seed.py
+# Database — regenerate with: python -m backend.scripts.seed
 *.sqlite3
 *.db
 
-# Model artifacts — regenerate with ml/train.py
+# Model artifacts — regenerate with: python -m backend.ml.train
+# Includes holdout_ids.json, which is derived from the seed and so is
+# reproducible on any machine that runs seed.py with the same fixed RNG seed.
 backend/ml/artifacts/
 *.joblib
 *.pkl
 
-# Generated + cached data
-backend/data/feeds/
+# Cached threat-intel feeds — repopulate with: python backend/scripts/fetch_feeds.py
+# Not committed because they are large, they go stale, and CISA KEV is public
+# anyway. The system degrades gracefully when the cache is missing.
+backend/app/data/feeds/
 data/training.csv
 *.csv.gz
 
 # Secrets
 *.key
 
-# Planning / briefs — local only
+# Server logs
+*.log
+
+# Planning and internal briefs — local only.
+# api-contract.md, backend-contract.md and STATE.md ARE shared: they are the
+# two team seams plus the handoff doc, and the project is unworkable without
+# them. PLAN.md and the frontend/demo-site briefs were scaffolding.
 PLAN.md
 docs/*
 !docs/api-contract.md
+!docs/backend-contract.md
+!docs/STATE.md
 
 # OS generated files
 .DS_Store

@@ -14,6 +14,7 @@ from starlette.requests import Request
 from backend.app.counters import ip_counter
 from backend.app.database import SessionLocal
 from backend.app.models.tables import Event
+from backend.app.services import detect, enrich as enr, prioritize as prio
 
 # Paths that generate noise without security signal — skip logging
 _SKIP_PREFIXES = ("/static/", "/mocks/", "/dashboard-static/", "/favicon")
@@ -67,17 +68,24 @@ class TelemetryMiddleware(BaseHTTPMiddleware):
             session_id=session_id,
         )
 
-        # Browser features — absent for server-generated events → all None
-        browser_feats = {k: None for k in [
-            "mouse_move_count", "mouse_path_entropy",
-            "keystroke_count", "keystroke_interval_mean", "keystroke_interval_std",
-            "form_fill_ms", "paste_events",
-            "click_count", "time_to_first_click_ms",
-            "scroll_events", "page_dwell_ms", "focus_blur_count",
-            "screen_w", "screen_h", "tz_offset", "hardware_concurrency",
-        ]}
+        # Fuse browser telemetry by session_id. Without this every request
+        # looks like a bot — including a human typing their own password —
+        # because the sensor reports separately from the server.
+        features = detect.fuse(server_feats, session_id)
 
-        features = {**server_feats, **browser_feats, "browser_telemetry_present": 0}
+        # Which asset answered this path. Left None, asset_criticality falls to
+        # its floor and every incident is under-scored.
+        asset_id = detect.asset_for(path)
+
+        # Classify now, not later: correlation only considers non-normal
+        # events, so an unclassified row is invisible to the whole pipeline.
+        pred_class, pred_conf, evidence, technique = detect.classify(
+            features, path, response.status_code)
+
+        enrichment = enr.enrich(path, response.status_code, asset_id,
+                                src_ip, None, None)
+        scored = prio.score_event(pred_conf, enrichment,
+                                  datetime.now(timezone.utc))
 
         # Raw request snapshot (safe — no credentials stored)
         raw = {
@@ -100,18 +108,17 @@ class TelemetryMiddleware(BaseHTTPMiddleware):
                 src_ip=src_ip,
                 asn=None,        # enriched later by Team 2
                 country=None,    # enriched later by Team 2
-                user_id=None,    # set by auth routes when user is known
-                asset_id=None,   # set by auth routes / telemetry when known
+                user_id=ip_counter.last_user_for(src_ip),
+                asset_id=asset_id,
                 url_path=path,
                 http_status=response.status_code,
                 raw_json=json.dumps(raw),
                 features_json=json.dumps(features),
-                # Team 2 fields — explicitly None on insert
-                pred_class=None,
-                pred_confidence=None,
-                evidence_json=None,
-                attack_technique=None,
-                individual_priority=None,
+                pred_class=pred_class,
+                pred_confidence=pred_conf,
+                evidence_json=json.dumps(evidence),
+                attack_technique=technique,
+                individual_priority=scored["priority"],
             )
             db.add(event)
             db.commit()

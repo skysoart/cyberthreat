@@ -1,0 +1,277 @@
+# Adamantine — response playbooks, keyed by MITRE ATT&CK technique.
+#
+# THERE IS NO LANGUAGE MODEL IN THIS SYSTEM. Every recommendation the dashboard
+# shows is a row in this file, selected by technique ID and rendered with a
+# template. That is why "how do you know it isn't hallucinating remediation?"
+# has a one-sentence answer: it cannot, because nothing generates text.
+#
+# Placeholders available: {top_asn} {n_users} {assets} {cve} {matched_asset}
+#                         {top_ip} {subnet} {incident_id}
+#
+# ID scheme:  PB-C-### containment · PB-E-### eradication
+#             PB-R-### recovery    · PB-H-### hunt
+
+T1595.002:
+  name: Vulnerability Scanning
+  containment:
+    - id: PB-C-002
+      action: "Rate-limit {subnet} at the edge to 10 req/min for 60 minutes"
+      owner: Network Ops
+      eta_min: 5
+      rollback: "Remove the rate-limit rule; confirm legitimate traffic unaffected"
+    - id: PB-C-031
+      action: "Restrict /actuator/* and /.env to internal networks at the gateway"
+      owner: Platform
+      eta_min: 10
+      rollback: "Restore previous gateway route configuration"
+  eradication:
+    - id: PB-E-012
+      action: "Audit {matched_asset} for post-exploitation artefacts and unexpected outbound connections"
+      owner: SOC
+      eta_min: 45
+      rollback: "N/A — read-only investigation"
+  recovery:
+    - id: PB-R-003
+      action: "Patch {matched_asset} for {cve} and redeploy"
+      owner: Platform
+      eta_min: 60
+      rollback: "Redeploy the previous image tag"
+  hunt:
+    - id: PB-H-005
+      action: "Identify every host exposing an actuator or debug endpoint externally"
+      owner: Platform
+      eta_min: 30
+      query: "SELECT DISTINCT asset_id FROM event WHERE url_path LIKE '/actuator/%' AND http_status = 200"
+
+T1592:
+  name: Gather Victim Host Information
+  containment:
+    - id: PB-C-007
+      action: "Apply progressive rate-limiting to {top_ip} on catalogue endpoints"
+      owner: Network Ops
+      eta_min: 5
+      rollback: "Remove rate-limit rule"
+  eradication: []
+  recovery:
+    - id: PB-R-014
+      action: "Review robots.txt and consider authentication on bulk catalogue endpoints"
+      owner: AppSec
+      eta_min: 30
+      rollback: "Revert robots.txt"
+  hunt:
+    - id: PB-H-009
+      action: "Quantify catalogue coverage already retrieved by {top_asn}"
+      owner: SOC
+      eta_min: 20
+      query: "SELECT COUNT(DISTINCT url_path) FROM event WHERE asn = {top_asn}"
+
+T1110.001:
+  name: Password Guessing
+  containment:
+    - id: PB-C-018
+      action: "Enable account lockout after 5 failures on the targeted accounts"
+      owner: IAM
+      eta_min: 5
+      rollback: "Restore previous lockout policy"
+    - id: PB-C-011
+      action: "Block ASN {top_asn} at the WAF, 30-minute TTL"
+      owner: Network Ops
+      eta_min: 5
+      rollback: "Remove ASN rule; verify legitimate traffic restored"
+  eradication:
+    - id: PB-E-007
+      action: "Revoke all active sessions for the {n_users} targeted account(s)"
+      owner: IAM
+      eta_min: 2
+      rollback: "N/A — users re-authenticate normally"
+  recovery:
+    - id: PB-R-009
+      action: "Enable step-up MFA on /login for 24 hours"
+      owner: AppSec
+      eta_min: 15
+      rollback: "Disable the step-up policy"
+  hunt:
+    - id: PB-H-002
+      action: "Search all authentication events from ASN {top_asn} over the last 30 days"
+      owner: SOC
+      eta_min: 15
+      query: "SELECT * FROM event WHERE asn = {top_asn} AND url_path = '/login'"
+
+T1110.004:
+  name: Credential Stuffing
+  containment:
+    - id: PB-C-011
+      action: "Block ASN {top_asn} at the WAF, 30-minute TTL"
+      owner: Network Ops
+      eta_min: 5
+      rollback: "Remove ASN rule; verify legitimate traffic restored"
+    - id: PB-C-024
+      action: "Force password reset for the {n_users} targeted account(s)"
+      owner: IAM
+      eta_min: 10
+      rollback: "N/A — safe-forward"
+  eradication:
+    - id: PB-E-007
+      action: "Revoke all active sessions for the affected accounts"
+      owner: IAM
+      eta_min: 2
+      rollback: "N/A"
+  recovery:
+    - id: PB-R-009
+      action: "Enable step-up MFA on /login for 24 hours"
+      owner: AppSec
+      eta_min: 15
+      rollback: "Disable the step-up policy"
+    - id: PB-R-021
+      action: "Cross-check targeted accounts against known credential breach corpora"
+      owner: IAM
+      eta_min: 30
+      rollback: "N/A"
+  hunt:
+    - id: PB-H-002
+      action: "Search all authentication events from ASN {top_asn} over the last 30 days"
+      owner: SOC
+      eta_min: 15
+      query: "SELECT * FROM event WHERE asn = {top_asn} AND url_path = '/login'"
+
+T1078:
+  name: Valid Accounts
+  containment:
+    - id: PB-C-024
+      action: "Force password reset for the {n_users} compromised account(s) immediately"
+      owner: IAM
+      eta_min: 10
+      rollback: "N/A — safe-forward"
+    - id: PB-C-011
+      action: "Block ASN {top_asn} at the WAF, 30-minute TTL"
+      owner: Network Ops
+      eta_min: 5
+      rollback: "Remove ASN rule"
+  eradication:
+    - id: PB-E-007
+      action: "Revoke every active session and API token for the affected accounts"
+      owner: IAM
+      eta_min: 2
+      rollback: "N/A"
+    - id: PB-E-019
+      action: "Review actions taken by the compromised account since first successful login"
+      owner: SOC
+      eta_min: 60
+      rollback: "N/A — read-only investigation"
+  recovery:
+    - id: PB-R-009
+      action: "Enable step-up MFA on /login for 24 hours"
+      owner: AppSec
+      eta_min: 15
+      rollback: "Disable the step-up policy"
+  hunt:
+    - id: PB-H-011
+      action: "Identify any other account authenticated from {subnet}"
+      owner: SOC
+      eta_min: 20
+      query: "SELECT DISTINCT user_id FROM event WHERE src_ip LIKE '{subnet}%' AND http_status = 200"
+
+T1190:
+  name: Exploit Public-Facing Application
+  containment:
+    - id: PB-C-031
+      action: "Restrict the exposed endpoint on {matched_asset} to internal networks"
+      owner: Platform
+      eta_min: 10
+      rollback: "Restore previous gateway route configuration"
+    - id: PB-C-011
+      action: "Block ASN {top_asn} at the WAF, 30-minute TTL"
+      owner: Network Ops
+      eta_min: 5
+      rollback: "Remove ASN rule"
+  eradication:
+    - id: PB-E-012
+      action: "Audit {matched_asset} for post-exploitation artefacts"
+      owner: SOC
+      eta_min: 45
+      rollback: "N/A — read-only"
+  recovery:
+    - id: PB-R-003
+      action: "Patch {matched_asset} for {cve} and redeploy"
+      owner: Platform
+      eta_min: 60
+      rollback: "Redeploy the previous image tag"
+  hunt:
+    - id: PB-H-005
+      action: "Identify every host running the same vulnerable component"
+      owner: Platform
+      eta_min: 30
+      query: "SELECT asset_id, software FROM asset WHERE software LIKE '%Spring%'"
+
+T1498:
+  name: Network Denial of Service
+  containment:
+    - id: PB-C-041
+      action: "Enable challenge mode at the edge for {subnet}"
+      owner: Network Ops
+      eta_min: 3
+      rollback: "Disable challenge mode"
+    - id: PB-C-011
+      action: "Block ASN {top_asn} at the WAF, 30-minute TTL"
+      owner: Network Ops
+      eta_min: 5
+      rollback: "Remove ASN rule"
+  eradication: []
+  recovery:
+    - id: PB-R-027
+      action: "Scale {assets} horizontally and verify autoscaling thresholds"
+      owner: Platform
+      eta_min: 20
+      rollback: "Scale back once traffic normalises"
+  hunt:
+    - id: PB-H-014
+      action: "Determine whether the flood masked activity on other endpoints"
+      owner: SOC
+      eta_min: 30
+      query: "SELECT url_path, COUNT(*) FROM event WHERE asn != {top_asn} GROUP BY url_path"
+
+T1041:
+  name: Exfiltration Over C2 Channel
+  containment:
+    - id: PB-C-052
+      action: "Block egress to the destination and isolate {matched_asset}"
+      owner: Network Ops
+      eta_min: 5
+      rollback: "Restore egress once confirmed clean"
+  eradication:
+    - id: PB-E-019
+      action: "Determine what data left, and over what period"
+      owner: SOC
+      eta_min: 120
+      rollback: "N/A — read-only"
+  recovery:
+    - id: PB-R-033
+      action: "Begin breach notification assessment"
+      owner: Legal / Compliance
+      eta_min: 60
+      rollback: "N/A"
+  hunt:
+    - id: PB-H-021
+      action: "Search for the same destination across all assets, last 90 days"
+      owner: SOC
+      eta_min: 30
+      query: "SELECT * FROM event WHERE resp_bytes_60s > 5000000"
+
+# Used when a cluster has no mapped technique. Never leaves the analyst
+# with an empty recommendations panel.
+default:
+  name: Unclassified Suspicious Activity
+  containment:
+    - id: PB-C-001
+      action: "Rate-limit {top_ip} and monitor for escalation"
+      owner: Network Ops
+      eta_min: 5
+      rollback: "Remove rate-limit rule"
+  eradication: []
+  recovery: []
+  hunt:
+    - id: PB-H-001
+      action: "Review all activity from {subnet} over the last 7 days"
+      owner: SOC
+      eta_min: 20
+      query: "SELECT * FROM event WHERE src_ip LIKE '{subnet}%'"

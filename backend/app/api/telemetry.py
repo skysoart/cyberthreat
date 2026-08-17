@@ -15,6 +15,7 @@ from backend.app.database import get_db
 from backend.app.models.tables import Event
 from backend.app.counters import ip_counter
 from backend.app.schemas import TelemetryPayload
+from backend.app.services import detect
 from backend.ml.features import SERVER_FEATURES, BROWSER_FEATURES
 
 router = APIRouter()
@@ -67,6 +68,11 @@ def ingest_telemetry(
             "hardware_concurrency": b.hardware_concurrency,
         }
         browser_telemetry_present = 1
+        # Cache it against the session so the middleware can fuse it into the
+        # SERVER-side events for the same visitor. Without this the sensor's
+        # data never reaches the events that actually get correlated, and every
+        # human looks like a bot.
+        detect.remember_browser(payload.session_id, browser_feats)
     else:
         browser_feats = {k: None for k in BROWSER_FEATURES}
         browser_telemetry_present = 0

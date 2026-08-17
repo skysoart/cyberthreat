@@ -1,10 +1,44 @@
-fastapi
-uvicorn[standard]
-SQLAlchemy
-pydantic
-pydantic-settings
-python-dotenv
-passlib[bcrypt]
-python-multipart
-pytest
-httpx
+# Adamantine — runtime dependencies
+#
+#   pip install -r requirements.txt
+#
+# Everything here is a pure-Python wheel or ships prebuilt on Windows, macOS
+# and Linux. There is no native build step, no CUDA, no PyTorch, and no
+# service to stand up — the whole platform runs on SQLite and localhost.
+#
+# There are no API keys anywhere in this project. If a future change adds one,
+# something has gone wrong: the system is designed to run with networking
+# disabled, and every threat-intel feed is read from a local cache.
+
+# --- web ---
+fastapi>=0.110
+uvicorn[standard]>=0.27
+python-multipart>=0.0.9        # form parsing for the store's login/register
+jinja2>=3.1
+
+# --- data layer ---
+SQLAlchemy>=2.0
+pydantic-settings>=2.0
+email-validator>=2.0           # required by pydantic EmailStr in schemas.py
+
+# --- auth ---
+passlib>=1.7.4
+bcrypt<4.1                     # passlib 1.7.4 crashes against bcrypt >= 4.1
+                               # during its own capability probe:
+                               # "password cannot be longer than 72 bytes"
+
+# --- intelligence layer ---
+scikit-learn>=1.3              # HistGradientBoostingClassifier + calibration
+numpy>=1.24
+pandas>=2.0
+joblib>=1.3                    # model artifact serialisation
+networkx>=3.0                  # correlation graph, entity-graph SVG layout
+PyYAML>=6.0                    # attack_map, playbooks, path_cve_map
+httpx>=0.26                    # threat-feed downloads and the live test suite
+
+# Deliberately absent:
+#   no anthropic / openai — there is no language model in this system
+#   no xgboost / lightgbm  — sklearn's HistGradientBoosting is the same family
+#                            without the native build risk
+#   no torch / transformers — correlation is entity- and time-based, not semantic
+#   no celery / redis       — one in-process daemon thread does the scheduling

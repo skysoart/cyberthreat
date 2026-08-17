@@ -6,6 +6,7 @@ Designed to be replaceable by Redis later without changing the interface.
 """
 import time
 import math
+import hashlib
 from collections import defaultdict, deque
 from typing import Dict, Optional
 
@@ -133,11 +134,27 @@ class RateCounter:
                 st._users_tried.popleft()
             self._user_fails[email].push(now)
 
-    def record_auth_success(self, ip: str) -> None:
+    def record_auth_success(self, ip: str, email: str = "") -> None:
         st = self._s(ip)
         if st._last_auth_failed:
             st.auth_success_after_fail = True
         st._last_auth_failed = False
+        if email:
+            st._last_email_tried = email
+
+    def last_user_for(self, ip: str) -> Optional[str]:
+        """
+        Hashed user_id of the most recent account this address touched, so the
+        middleware can attribute an event to a user without seeing the email.
+
+        Same derivation as seed.py — an incident's `users_affected` only means
+        something if both sides produce identical ids.
+        """
+        st = self._s(ip)
+        email = getattr(st, "_last_email_tried", "")
+        if not email:
+            return None
+        return "u_" + hashlib.sha256(email.lower().encode()).hexdigest()[:6]
 
     # ------------------------------------------------------------------
     # Feature extraction — returns a dict keyed by SERVER_FEATURES names
@@ -168,7 +185,11 @@ class RateCounter:
         distinct_users_tried = len(set(e for _, e in st._users_tried))
         
         auth_fail_user_60 = self._user_fails[st._last_email_tried].count() if st._last_email_tried else 0
+        # One-shot flag. It describes THIS event ("a login just succeeded after
+        # failures"), not a permanent property of the address — leaving it set
+        # made every later request from that IP claim T1078 Valid Accounts.
         auth_success_after_fails = 1 if st.auth_success_after_fail else 0
+        st.auth_success_after_fail = False
 
         # Path features
         paths = [p for _, p in st.paths_60]
@@ -251,9 +272,20 @@ class RateCounter:
 # Helpers
 # ---------------------------------------------------------------------------
 
+# Paths that should never be reachable from the outside: config, secrets,
+# debug surfaces, admin tooling of software we don't intend to expose.
+#
+# /login, /register, /checkout and /admin are deliberately NOT here. They are
+# ordinary pages of the store. Listing them made every successful login score
+# sensitive_path_hit=1 with HTTP 200, which detect.py then labelled T1190
+# "Exploit Public-Facing Application" — so a customer signing in appeared in
+# the kill chain as an intrusion. Attacking those paths is caught by the auth
+# and rate features, which is the right signal for them.
 _SENSITIVE_PATHS = frozenset([
-    "/.env", "/.git/config", "/wp-admin/", "/phpmyadmin/",
-    "/admin", "/actuator/env", "/login", "/register", "/checkout",
+    "/.env", "/.git/config", "/.git/HEAD", "/.aws/credentials", "/.DS_Store",
+    "/wp-admin/", "/phpmyadmin/", "/actuator/env", "/actuator/heapdump",
+    "/admin.php", "/config.json", "/backup.sql", "/server-status",
+    "/api/v1/config", "/debug/pprof/", "/solr/admin/cores", "/cgi-bin/",
 ])
 
 _KNOWN_TOOL_UAS = ("sqlmap", "nikto", "nmap", "masscan", "zgrab", "curl/", "python-requests", "go-http-client")

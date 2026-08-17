@@ -1,0 +1,88 @@
+# Adamantine — signal -> MITRE ATT&CK technique.
+#
+# Two ways an event gets a technique:
+#   1. by its predicted class (below, `classes`)
+#   2. by an overriding signal in its features (`overrides`), which wins
+#
+# `tactic_order` defines kill-chain depth: the number of DISTINCT tactics a
+# correlated cluster reaches. Three or more forces escalation regardless of
+# what any individual event scored.
+
+tactic_order:
+  - Reconnaissance
+  - Initial Access
+  - Execution
+  - Credential Access
+  - Discovery
+  - Lateral Movement
+  - Collection
+  - Exfiltration
+  - Impact
+
+classes:
+  normal:
+    technique_id: null
+    technique: null
+    tactic: null
+
+  dir_scan:
+    technique_id: T1595.002
+    technique: Vulnerability Scanning
+    tactic: Reconnaissance
+
+  slow_recon:
+    technique_id: T1595.002
+    technique: Vulnerability Scanning
+    tactic: Reconnaissance
+
+  scraper:
+    technique_id: T1592
+    technique: Gather Victim Host Information
+    tactic: Reconnaissance
+
+  brute_force:
+    technique_id: T1110.001
+    technique: Password Guessing
+    tactic: Credential Access
+
+  credential_stuffing:
+    technique_id: T1110.004
+    technique: Credential Stuffing
+    tactic: Credential Access
+
+  flood:
+    technique_id: T1498
+    technique: Network Denial of Service
+    tactic: Impact
+
+# ID -> name/tactic for techniques that detect.py assigns from URL-path context
+# this file's feature rules cannot see (e.g. /register abuse). Correlation looks
+# here when resolving a technique stored on the event itself.
+technique_names:
+  T1595.002: { technique: Vulnerability Scanning, tactic: Reconnaissance }
+  T1592:     { technique: Gather Victim Host Information, tactic: Reconnaissance }
+  T1110.001: { technique: Password Guessing, tactic: Credential Access }
+  T1110.004: { technique: Credential Stuffing, tactic: Credential Access }
+  T1078:     { technique: Valid Accounts, tactic: Initial Access }
+  T1190:     { technique: Exploit Public-Facing Application, tactic: Initial Access }
+  T1136:     { technique: Create Account, tactic: Persistence }
+  T1498:     { technique: Network Denial of Service, tactic: Impact }
+  T1041:     { technique: Exfiltration Over C2 Channel, tactic: Exfiltration }
+
+# Feature-driven overrides. Checked in order; first match wins.
+# These are what let a cluster reach a third tactic and escalate.
+overrides:
+  - when: { feature: auth_success_after_fails, equals: 1 }
+    technique_id: T1078
+    technique: Valid Accounts
+    tactic: Initial Access
+
+  - when: { feature: sensitive_path_hit, equals: 1, http_status: 200 }
+    technique_id: T1190
+    technique: Exploit Public-Facing Application
+    tactic: Initial Access
+
+  - when: { feature: resp_bytes_60s, greater_than: 5000000 }
+    technique_id: T1041
+    technique: Exfiltration Over C2 Channel
+    tactic: Exfiltration
