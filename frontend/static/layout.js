@@ -1,3 +1,24 @@
+
+// ---------------------------------------------------------------------------
+// Timestamps.
+//
+// The API returns ISO-8601 UTC ("2026-08-18T07:54:03Z"). Stripping the T and
+// the Z shows the raw UTC clock, so an analyst in IST saw their own activity
+// timestamped 5.5 hours in the past and reasonably concluded the dashboard
+// was not updating. Always parse and render in the viewer's local zone.
+// ---------------------------------------------------------------------------
+function fmtTime(iso) {
+    if (!iso) return '';
+    const d = new Date(iso);
+    return isNaN(d) ? iso : d.toLocaleTimeString([], { hour12: false });
+}
+
+function fmtDateTime(iso) {
+    if (!iso) return '';
+    const d = new Date(iso);
+    return isNaN(d) ? iso : d.toLocaleString([], { hour12: false });
+}
+
 document.addEventListener("DOMContentLoaded", () => {
     const sidebarHtml = `
         <aside class="sidebar">

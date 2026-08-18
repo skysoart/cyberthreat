@@ -176,7 +176,7 @@ function renderTicker(events) {
         const link = ev.incident_id ? `<a href="incident.html?id=${ev.incident_id}" style="color:var(--accent-blue)">${ev.incident_id}</a>` : '<span style="color:var(--text-secondary)">No Incident</span>';
         
         div.innerHTML = `
-            <div style="font-size:11px; color:var(--text-secondary)">${ev.ts.split('T')[1].replace('Z','')}</div>
+            <div style="font-size:11px; color:var(--text-secondary)">${fmtTime(ev.ts)}</div>
             <div style="font-family:monospace">${ev.src_ip}</div>
             <div style="flex-grow:1; text-overflow:ellipsis; overflow:hidden; white-space:nowrap;">${ev.url_path}</div>
             <div style="width:80px;">${ev.pred_class}</div>

@@ -21,7 +21,7 @@ async function fetchModelData() {
 
 function renderCurrentVersion(curr) {
     document.getElementById('currentVersion').textContent = curr.version;
-    document.getElementById('currentTrained').textContent = curr.trained_at.replace('T', ' ').replace('Z', '');
+    document.getElementById('currentTrained').textContent = fmtDateTime(curr.trained_at);
     document.getElementById('nBase').textContent = curr.n_base.toLocaleString();
     document.getElementById('nFeedback').textContent = curr.n_feedback;
     
@@ -142,7 +142,7 @@ function renderHistory(history) {
             
         tr.innerHTML = `
             <td style="font-family:monospace; font-weight:bold;">${v.version}</td>
-            <td>${v.trained_at.replace('T', ' ').replace('Z', '')}</td>
+            <td>${fmtDateTime(v.trained_at)}</td>
             <td>${v.pr_auc.toFixed(3)}</td>
             <td>${v.fpr_at_90_recall.toFixed(3)}</td>
             <td>${v.n_feedback}</td>

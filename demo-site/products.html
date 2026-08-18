@@ -44,15 +44,17 @@
                 const card = document.createElement('div');
                 card.className = 'product-card';
                 card.innerHTML = `
-                    <div class="product-img" style="background: ${p.gradient}">
-                        <img src="${p.image}" alt="${p.name}" loading="lazy" onerror="this.style.opacity='0'">
-                    </div>
-                    <div class="product-info">
-                        <div class="product-category">${p.category}</div>
-                        <div class="product-title">${p.name}</div>
-                        <div class="product-price">₹${Number(p.price).toLocaleString('en-IN')}</div>
-                        <div style="display:flex; gap:8px; margin-top:12px;"><a href="/products/${p.id}" class="btn btn-secondary" style="flex:1; padding:12px 8px; font-size:12px;">Details</a><button class="btn" onclick="event.preventDefault(); addToCart(${p.id}, event)" style="flex:2; padding:12px 8px; font-size:12px;">Add to Cart</button></div>
-                    </div>
+                    <a href="/products/${p.id}" class="product-link">
+                        <div class="product-img" style="background: ${p.gradient}">
+                            <img src="${p.image}" alt="${p.name}" loading="lazy" onerror="this.style.opacity='0'">
+                        </div>
+                        <div class="product-info">
+                            <div class="product-category">${p.category}</div>
+                            <div class="product-title">${p.name}</div>
+                            <div class="product-price">₹${Number(p.price).toLocaleString('en-IN')}</div>
+                        </div>
+                    </a>
+                    <button class="btn" onclick="addToCart(${p.id}, event)" style="width:100%; margin-top:12px;">Add to Cart</button>
                 `;
                 grid.appendChild(card);
             });

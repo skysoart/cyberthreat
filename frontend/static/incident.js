@@ -32,8 +32,8 @@ function renderIncident(inc) {
     document.getElementById('incTitle').textContent = inc.title;
     document.getElementById('incId').textContent = inc.id;
     document.getElementById('incRisk').textContent = inc.risk_score;
-    document.getElementById('incOpened').textContent = inc.opened_at.replace('T', ' ').replace('Z', '');
-    document.getElementById('incLastSeen').textContent = inc.last_seen_at.replace('T', ' ').replace('Z', '');
+    document.getElementById('incOpened').textContent = fmtDateTime(inc.opened_at);
+    document.getElementById('incLastSeen').textContent = fmtDateTime(inc.last_seen_at);
     
     const priorityPill = document.getElementById('incPriority');
     priorityPill.textContent = inc.priority;
@@ -125,7 +125,7 @@ function renderIncident(inc) {
         };
         
         tr.innerHTML = `
-            <td>${ev.ts.split('T')[1].replace('Z','')}</td>
+            <td>${fmtTime(ev.ts)}</td>
             <td style="font-family:monospace">${ev.src_ip}</td>
             <td style="font-family:monospace">${ev.url_path}</td>
             <td>${ev.http_status}</td>
