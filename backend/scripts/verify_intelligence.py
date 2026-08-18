@@ -22,6 +22,14 @@ import backend.app.models.security_tables                      # noqa: E402,F401
 from backend.app.services import enrich as enr                 # noqa: E402
 from backend.app.services.engine import ThreatEngine           # noqa: E402
 
+# Windows consoles default to cp1252, which cannot encode the box-drawing
+# and typographic characters used below. Without this, piping this script's
+# output crashes with UnicodeEncodeError on a default Windows install.
+try:
+    sys.stdout.reconfigure(encoding="utf-8")
+except (AttributeError, ValueError):
+    pass
+
 GREEN, RED, DIM, BOLD, OFF = "\033[32m", "\033[31m", "\033[2m", "\033[1m", "\033[0m"
 passed = failed = 0
 

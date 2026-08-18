@@ -25,6 +25,14 @@ from backend.app.models.tables import (
 import backend.app.models.security_tables  # noqa: F401
 from backend.scripts.generate_events import seed_events
 
+# Windows consoles default to cp1252, which cannot encode the box-drawing
+# and typographic characters used below. Without this, piping this script's
+# output crashes with UnicodeEncodeError on a default Windows install.
+try:
+    sys.stdout.reconfigure(encoding="utf-8")
+except (AttributeError, ValueError):
+    pass
+
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
 

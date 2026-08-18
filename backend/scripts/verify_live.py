@@ -19,6 +19,14 @@ from pathlib import Path
 
 import httpx
 
+# Windows consoles default to cp1252, which cannot encode the box-drawing
+# and typographic characters used below. Without this, piping this script's
+# output crashes with UnicodeEncodeError on a default Windows install.
+try:
+    sys.stdout.reconfigure(encoding="utf-8")
+except (AttributeError, ValueError):
+    pass
+
 sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
 
 BASE = "http://127.0.0.1:8000"

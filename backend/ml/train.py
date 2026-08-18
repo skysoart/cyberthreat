@@ -1,4 +1,5 @@
 """
+import sys
 backend/ml/train.py — Team 2.
 
 Trains the traffic classifier and runs the promotion gate.
@@ -40,6 +41,14 @@ from typing import Any, Optional
 import numpy as np
 
 from backend.ml.features import FEATURE_NAMES, to_vector
+
+# Windows consoles default to cp1252, which cannot encode the box-drawing
+# and typographic characters used below. Without this, piping this script's
+# output crashes with UnicodeEncodeError on a default Windows install.
+try:
+    sys.stdout.reconfigure(encoding="utf-8")
+except (AttributeError, ValueError):
+    pass
 
 ARTIFACTS = Path(__file__).resolve().parent / "artifacts"
 HOLDOUT_FILE = ARTIFACTS / "holdout_ids.json"

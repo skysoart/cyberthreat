@@ -1,3 +1,7 @@
+// Product images are served from static/img/ so the store renders with
+// networking disabled. Do not reintroduce remote image URLs: the demo is
+// meant to run entirely offline, and an external request on every product
+// page breaks that guarantee.
 const REAL_PRODUCTS = [
     {
         id: 8801,
@@ -7,7 +11,7 @@ const REAL_PRODUCTS = [
         rating: 4.7,
         stock: 45,
         description: "High-fidelity wireless over-ear headphones with active noise cancellation and 30-hour battery life.",
-        image: "https://images.unsplash.com/photo-1505740420928-5e560c06d30e?auto=format&fit=crop&w=800&q=80"
+        image: "static/img/p01.jpg"
     },
     {
         id: 8802,
@@ -17,7 +21,7 @@ const REAL_PRODUCTS = [
         rating: 4.8,
         stock: 30,
         description: "RGB tactile mechanical keyboard with custom hot-swappable switches and ergonomic wrist rest.",
-        image: "https://images.unsplash.com/photo-1587829741301-dc798b83add3?auto=format&fit=crop&w=800&q=80"
+        image: "static/img/p02.jpg"
     },
     {
         id: 8803,
@@ -27,7 +31,7 @@ const REAL_PRODUCTS = [
         rating: 4.5,
         stock: 80,
         description: "Precision 2.4GHz wireless optical mouse with ergonomic grip and silent click switches.",
-        image: "https://images.unsplash.com/photo-1615663245857-ac93bb7c39e7?auto=format&fit=crop&w=800&q=80"
+        image: "static/img/p03.jpg"
     },
     {
         id: 8804,
@@ -37,7 +41,7 @@ const REAL_PRODUCTS = [
         rating: 4.6,
         stock: 65,
         description: "Compact true wireless earbuds with deep bass, IPX5 water resistance, and wireless charging case.",
-        image: "https://images.unsplash.com/photo-1590658268037-6bf12165a8df?auto=format&fit=crop&w=800&q=80"
+        image: "static/img/p04.jpg"
     },
     {
         id: 8805,
@@ -47,7 +51,7 @@ const REAL_PRODUCTS = [
         rating: 4.4,
         stock: 50,
         description: "Rugged waterproof portable speaker with 360-degree room-filling sound and 12-hour playtime.",
-        image: "https://images.unsplash.com/photo-1608043152269-423dbba4e7e1?auto=format&fit=crop&w=800&q=80"
+        image: "static/img/p05.jpg"
     },
     {
         id: 8806,
@@ -57,7 +61,7 @@ const REAL_PRODUCTS = [
         rating: 4.7,
         stock: 90,
         description: "High-capacity power bank with 22.5W fast charging support and dual USB-C/USB-A output ports.",
-        image: "https://images.unsplash.com/photo-1609592424074-13c548a851d9?auto=format&fit=crop&w=800&q=80"
+        image: ""
     },
     {
         id: 8807,
@@ -67,7 +71,7 @@ const REAL_PRODUCTS = [
         rating: 4.5,
         stock: 40,
         description: "Feature-rich smartwatch with heart rate monitor, SpO2 sensor, sleep tracking, and AMOLED display.",
-        image: "https://images.unsplash.com/photo-1523275335684-37898b6baf30?auto=format&fit=crop&w=800&q=80"
+        image: "static/img/p07.jpg"
     },
     {
         id: 8808,
@@ -77,7 +81,7 @@ const REAL_PRODUCTS = [
         rating: 4.9,
         stock: 25,
         description: "Ultra-fast 1050MB/s USB 3.2 Gen 2 portable solid-state drive with shock-resistant aluminum casing.",
-        image: "https://images.unsplash.com/photo-1597872200969-2b65d56bd16b?auto=format&fit=crop&w=800&q=80"
+        image: "static/img/p08.jpg"
     },
     {
         id: 8809,
@@ -87,7 +91,7 @@ const REAL_PRODUCTS = [
         rating: 4.6,
         stock: 60,
         description: "Dimmable LED desk lamp with touch control, adjustable color temperature, and built-in USB charger.",
-        image: "https://images.unsplash.com/photo-1507473885765-e6ed057f782c?auto=format&fit=crop&w=800&q=80"
+        image: "static/img/p09.jpg"
     },
     {
         id: 8810,
@@ -97,7 +101,7 @@ const REAL_PRODUCTS = [
         rating: 4.8,
         stock: 120,
         description: "Double-wall vacuum insulated flask keeping drinks cold for 24 hours or hot for 12 hours.",
-        image: "https://images.unsplash.com/photo-1602143407151-7111542de6e8?auto=format&fit=crop&w=800&q=80"
+        image: "static/img/p10.jpg"
     },
     {
         id: 8811,
@@ -107,7 +111,7 @@ const REAL_PRODUCTS = [
         rating: 4.5,
         stock: 85,
         description: "Handcrafted 350ml ceramic coffee mug with comfortable handle and smooth matte glaze finish.",
-        image: "https://images.unsplash.com/photo-1514432324607-a09d9b4aefdd?auto=format&fit=crop&w=800&q=80"
+        image: "static/img/p11.jpg"
     },
     {
         id: 8812,
@@ -117,7 +121,7 @@ const REAL_PRODUCTS = [
         rating: 4.7,
         stock: 35,
         description: "Precision pour-over electric kettle with rapid boiling technology and auto shut-off safety.",
-        image: "https://images.unsplash.com/photo-1544787219-7f47ccb76574?auto=format&fit=crop&w=800&q=80"
+        image: "static/img/p12.jpg"
     },
     {
         id: 8813,
@@ -127,7 +131,7 @@ const REAL_PRODUCTS = [
         rating: 4.7,
         stock: 70,
         description: "Ergonomic foldable aluminum riser supporting laptops up to 17 inches for improved posture.",
-        image: "https://images.unsplash.com/photo-1527864550417-7fd91fc51a46?auto=format&fit=crop&w=800&q=80"
+        image: "static/img/p13.jpg"
     },
     {
         id: 8814,
@@ -137,7 +141,7 @@ const REAL_PRODUCTS = [
         rating: 4.4,
         stock: 95,
         description: "Multi-compartment natural walnut desk caddy for stationary, pens, and daily accessories.",
-        image: "https://images.unsplash.com/photo-1544816155-12df9643f363?auto=format&fit=crop&w=800&q=80"
+        image: "static/img/p14.jpg"
     },
     {
         id: 8815,
@@ -147,7 +151,7 @@ const REAL_PRODUCTS = [
         rating: 4.6,
         stock: 150,
         description: "A5 thick dotted grid notebook with expandable inner pocket and bookmark ribbon.",
-        image: "https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c?auto=format&fit=crop&w=800&q=80"
+        image: "static/img/p15.jpg"
     },
     {
         id: 8816,
@@ -157,7 +161,7 @@ const REAL_PRODUCTS = [
         rating: 4.5,
         stock: 75,
         description: "Shockproof padded protective sleeve with accessory pocket for charger and cables.",
-        image: "https://images.unsplash.com/photo-1588872657578-7efd1f1555ed?auto=format&fit=crop&w=800&q=80"
+        image: "static/img/p16.jpg"
     },
     {
         id: 8817,
@@ -167,7 +171,7 @@ const REAL_PRODUCTS = [
         rating: 4.8,
         stock: 55,
         description: "Spacious 30L commuter backpack with anti-theft back pocket and USB charging port.",
-        image: "https://images.unsplash.com/photo-1553062407-98eeb64c6a62?auto=format&fit=crop&w=800&q=80"
+        image: "static/img/p17.jpg"
     },
     {
         id: 8818,
@@ -177,7 +181,7 @@ const REAL_PRODUCTS = [
         rating: 4.6,
         stock: 40,
         description: "Cushioned road running sneakers with breathable mesh upper and durable rubber grip.",
-        image: "https://images.unsplash.com/photo-1542291026-7eec264c27ff?auto=format&fit=crop&w=800&q=80"
+        image: "static/img/p18.jpg"
     },
     {
         id: 8819,
@@ -187,7 +191,7 @@ const REAL_PRODUCTS = [
         rating: 4.4,
         stock: 65,
         description: "Timeless unisex polarized wayfarer sunglasses with 100% UV400 protection.",
-        image: "https://images.unsplash.com/photo-1511499767150-a48a237f0083?auto=format&fit=crop&w=800&q=80"
+        image: "static/img/p19.jpg"
     },
     {
         id: 8820,
@@ -197,7 +201,7 @@ const REAL_PRODUCTS = [
         rating: 4.5,
         stock: 110,
         description: "Heavy-duty aluminum phone holder with anti-slip silicone pads and multi-angle rotation.",
-        image: "https://images.unsplash.com/photo-1586105251261-72a756497a11?auto=format&fit=crop&w=800&q=80"
+        image: "static/img/p20.jpg"
     },
     {
         id: 8821,
@@ -207,7 +211,7 @@ const REAL_PRODUCTS = [
         rating: 4.7,
         stock: 20,
         description: "Solid oak tripod stool suitable for dining counters, study desks, or bedside accent.",
-        image: "https://images.unsplash.com/photo-1503602642458-232111445657?auto=format&fit=crop&w=800&q=80"
+        image: "static/img/p21.jpg"
     },
     {
         id: 8822,
@@ -217,7 +221,7 @@ const REAL_PRODUCTS = [
         rating: 4.6,
         stock: 50,
         description: "Modern matte ceramic planter with drainage tray for indoor succulents and foliage.",
-        image: "https://images.unsplash.com/photo-1485955900006-10f4d324d411?auto=format&fit=crop&w=800&q=80"
+        image: "static/img/p22.jpg"
     },
     {
         id: 8823,
@@ -227,7 +231,7 @@ const REAL_PRODUCTS = [
         rating: 4.7,
         stock: 45,
         description: "Ultra-soft breathable 100% natural cotton throw blanket with tasseled fringe borders.",
-        image: "https://images.unsplash.com/photo-1584100936595-c0654b55a2e2?auto=format&fit=crop&w=800&q=80"
+        image: "static/img/p23.jpg"
     },
     {
         id: 8824,
@@ -237,7 +241,7 @@ const REAL_PRODUCTS = [
         rating: 4.5,
         stock: 35,
         description: "Solid teakwood rectangular platter tray with carved handles for breakfast or coffee service.",
-        image: "https://images.unsplash.com/photo-1530018607912-eff2daa1bac4?auto=format&fit=crop&w=800&q=80"
+        image: "static/img/p24.jpg"
     }
 ];
 
