@@ -59,6 +59,7 @@ data/training.csv
 # two team seams plus the handoff doc, and the project is unworkable without
 # them. PLAN.md and the frontend/demo-site briefs were scaffolding.
 PLAN.md
+RUNBOOK.md
 docs/*
 !docs/api-contract.md
 !docs/backend-contract.md

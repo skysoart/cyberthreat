@@ -411,6 +411,12 @@ def build(EventCls, days: int = 30, per_day: int = 1700) -> list:
         events += benign_day(EventCls, rnd, start + timedelta(days=d),
                              per_day + rnd.randint(-250, 250))
 
+    # Nothing may be dated in the future. benign_day spreads across all 24
+    # hours, so on the final day it invents traffic for hours that have not
+    # happened yet. Those events then outrank anything arriving live, and the
+    # Live Event Ticker appears frozen on seeded data while you browse.
+    events = [e for e in events if e.ts <= now.replace(tzinfo=None)]
+
     # Four historical campaigns. Two share ASN 14061 with today's, so campaign
     # fingerprint matching has a genuine near-neighbour rather than a contrived one.
     events += campaign(EventCls, rnd, start + timedelta(days=5, hours=2, minutes=11),
@@ -427,10 +433,12 @@ def build(EventCls, days: int = 30, per_day: int = 1700) -> list:
 
     # Today: the demo campaign. Nine events, every one P4 on its own.
     # Targets are the three seeded demo accounts.
-    events += campaign(EventCls, rnd, now.replace(hour=9, minute=14),
+    # Anchored relative to now so the demo incident is always recent — a fixed
+    # clock hour would sit in the future if you seed in the morning.
+    events += campaign(EventCls, rnd, now - timedelta(minutes=75),
                        "185.220.101", 14061, "NL",
                        ["u_3b71ef", "u_c04d92", "u_8f2a1c"])
-    events += noisy_campaign(EventCls, rnd, now.replace(hour=9, minute=2),
+    events += noisy_campaign(EventCls, rnd, now - timedelta(minutes=95),
                              "scraper", "138.201.44", 24940, "DE")
 
     events.sort(key=lambda e: e.ts)

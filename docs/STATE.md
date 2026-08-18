@@ -75,7 +75,7 @@ fails, nothing else matters — that check *is* the project.
 > "password cannot be longer than 72 bytes" during its own capability probe.
 > `email-validator` is required by the pydantic `EmailStr` in `schemas.py`.
 
-Dashboard at `http://localhost:8000/frontend/index.html`, store at `http://localhost:8000/`.
+Dashboard at `http://localhost:8000/dashboard/`, store at `http://localhost:8000/`.
 Set `USE_MOCKS = false` in `frontend/static/api.js` — the API is real now.
 
 ### Live demo sequence

@@ -51,7 +51,7 @@
                         <div style="margin-bottom: 20px;">Rating: ⭐ ${product.rating}/5</div>
                         <p style="color: var(--text-muted); margin-bottom: 30px;">${product.description}</p>
                         <p style="margin-bottom: 30px; font-size: 14px;">Stock: ${product.stock} items remaining</p>
-                        <button class="btn" onclick="addToCart(${product.id})" style="width: auto; padding: 15px 40px;">Add to Cart</button>
+                        <button class="btn" onclick="addToCart(${product.id}, event)" style="width: auto; padding: 15px 40px;">Add to Cart</button>
                     </div>
                 </div>
             `;

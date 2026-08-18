@@ -51,7 +51,7 @@
                         <div class="product-category">${p.category}</div>
                         <div class="product-title">${p.name}</div>
                         <div class="product-price">₹${Number(p.price).toLocaleString('en-IN')}</div>
-                        <a href="/products/${p.id}" class="btn" style="margin-top: 12px; width: 100%;">View Details</a>
+                        <div style="display:flex; gap:8px; margin-top:12px;"><a href="/products/${p.id}" class="btn btn-secondary" style="flex:1; padding:12px 8px; font-size:12px;">Details</a><button class="btn" onclick="event.preventDefault(); addToCart(${p.id}, event)" style="flex:2; padding:12px 8px; font-size:12px;">Add to Cart</button></div>
                     </div>
                 `;
                 grid.appendChild(card);

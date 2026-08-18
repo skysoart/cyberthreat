@@ -6,7 +6,7 @@ includes all API routers, adds telemetry middleware.
 import os
 
 from fastapi import FastAPI, Request
-from fastapi.responses import FileResponse, JSONResponse
+from fastapi.responses import FileResponse, JSONResponse, RedirectResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.middleware.cors import CORSMiddleware
 
@@ -83,6 +83,17 @@ def _start_correlation_loop() -> None:
 # ---------------------------------------------------------------------------
 if os.path.exists("demo-site/static"):
     app.mount("/static", StaticFiles(directory="demo-site/static"), name="demo-static")
+
+# Serve the whole dashboard directory, not just its static subfolder.
+#
+# Previously only frontend/static was mounted, so every dashboard PAGE 404'd and
+# the only way to see one was to open the .html off disk. That appears to work —
+# the page renders — but every fetch("/api/v1/...") then resolves against
+# file:// and fails silently, so the screens come up empty. html=True makes
+# /dashboard/ serve index.html, and the pages' relative asset paths
+# ("static/api.js", "style.css") resolve correctly underneath it.
+if os.path.exists("frontend"):
+    app.mount("/dashboard", StaticFiles(directory="frontend", html=True), name="dashboard")
 
 if os.path.exists("frontend/static"):
     app.mount("/dashboard-static", StaticFiles(directory="frontend/static"), name="dash-static")
@@ -185,30 +196,32 @@ def sensor_js():
 
 
 # ---------------------------------------------------------------------------
-# SOC Dashboard HTML pages
+# SOC Dashboard
 # ---------------------------------------------------------------------------
-@app.get("/dashboard")
-def dash_root():
-    return FileResponse("frontend/index.html")
+# The dashboard is served by the StaticFiles mount at /dashboard above.
+#
+# It used to also be reachable from the root via a /{page}.html catch-all, and
+# that was the source of a silent, total failure: the dashboard pages reference
+# "static/api.js", which at the root resolves to /static/ — the DEMO STORE's
+# static folder, which has no api.js. The page rendered, every dashboard script
+# 404'd, and all six screens came up empty with no visible error.
+#
+# Serving it only from /dashboard/ means those relative paths resolve inside
+# frontend/ where they belong.
 
 
-@app.get("/style.css")
-def dash_css():
-    return FileResponse("frontend/style.css")
+@app.get("/dashboard-legacy", include_in_schema=False)
+def dash_redirect():
+    return RedirectResponse(url="/dashboard/")
 
 
-@app.get("/app.js")
-def dash_js():
-    return FileResponse("frontend/app.js")
-
-
-# Dynamic catch-all for /incidents.html, /incident.html etc.
-@app.get("/{page}.html")
-def dash_page(page: str):
-    frontend_path = f"frontend/{page}.html"
-    if os.path.exists(frontend_path):
-        return FileResponse(frontend_path)
+# Root-level .html catch-all, restricted to the demo store. It must NOT fall
+# through to frontend/ — see above.
+@app.get("/{page}.html", include_in_schema=False)
+def store_page(page: str):
     demo_path = f"demo-site/{page}.html"
     if os.path.exists(demo_path):
         return FileResponse(demo_path)
+    if os.path.exists(f"frontend/{page}.html"):
+        return RedirectResponse(url=f"/dashboard/{page}.html")
     return JSONResponse(status_code=404, content={"detail": "Not found"})

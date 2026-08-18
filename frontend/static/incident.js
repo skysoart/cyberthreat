@@ -90,7 +90,7 @@ function renderIncident(inc) {
                 <strong>${ti.value}</strong> (${ti.name})<br>
                 Source: ${ti.source}<br>
                 EPSS: ${ti.epss}<br>
-                Triggered by path: <code style="background: #000; padding: 2px 4px;">${ti.triggered_by_path}</code><br>
+                Triggered by path: <code class="path-chip">${ti.triggered_by_path}</code><br>
                 Matched Asset: ${ti.matched_asset} (${ti.matched_software})
             </div>
         `);

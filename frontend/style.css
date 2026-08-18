@@ -286,3 +286,22 @@ tr:hover { background-color: var(--bg-hover); }
 .text-P2 { color: #ea580c; }
 .text-P3 { color: #ca8a04; }
 .text-P4 { color: #64748b; }
+
+
+/* ---------------------------------------------------------------------------
+   Inline code / path chips.
+
+   These used to be written inline as background:#000 with no colour set, so
+   the text inherited --text-primary (#2c2c2a) and rendered black-on-black —
+   invisible unless you selected it. Foreground and background are always set
+   together here; never set one without the other.
+   --------------------------------------------------------------------------- */
+code, .path-chip {
+    background: #f4f3f0;
+    color: #1e1e1c;
+    border: 1px solid #e8e6e1;
+    border-radius: 4px;
+    padding: 2px 6px;
+    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    font-size: 0.9em;
+}

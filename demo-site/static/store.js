@@ -37,15 +37,18 @@ function setupIntersectionObserver() {
     }, 50);
 }
 
-function addToCart(id) {
+function addToCart(id, evt) {
     let cart = JSON.parse(localStorage.getItem('cart') || '[]');
     cart.push(id);
     localStorage.setItem('cart', JSON.stringify(cart));
     
     updateCartCount(true); // pass true to trigger animation
     
-    // Smooth button feedback
-    const btn = event.currentTarget;
+    // Smooth button feedback. Take the event as an argument rather than
+    // leaning on the implicit global `window.event`, which is deprecated
+    // and absent in strict-mode / non-Chromium contexts.
+    const btn = (evt || window.event || {}).currentTarget;
+    if (!btn) return;
     const originalText = btn.textContent;
     btn.textContent = 'Added ✓';
     btn.style.background = '#10b981'; // success green
@@ -103,32 +106,77 @@ if (loginForm) {
                 resetBtn(submitBtn, ogText);
             }
         } catch (err) {
-            // Mock behavior if backend isn't running yet
-            setTimeout(() => {
-                if (password === 'demo1234' && ['alice@samplestore.test', 'bob@samplestore.test', 'carol@samplestore.test'].includes(email)) {
-                    localStorage.setItem('session_user', email);
-                    document.body.style.opacity = '0';
-                    setTimeout(() => window.location.href = '/account', 300);
-                } else {
-                    showError(errorEl, "Incorrect email or password (Mock)");
-                    resetBtn(submitBtn, ogText);
-                }
-            }, 600); // fake network delay
+            // No offline fallback. A fake client-side login would mask a broken
+            // backend and, worse, produce no auth events for the sensor to see.
+            showError(errorEl, "Server unreachable — is the backend running?");
+            resetBtn(submitBtn, ogText);
         }
     });
 }
 
 const registerForm = document.getElementById('registerForm');
 if (registerForm) {
-    registerForm.addEventListener('submit', (e) => {
+    registerForm.addEventListener('submit', async (e) => {
         e.preventDefault();
         const submitBtn = e.target.querySelector('button[type="submit"]');
+        const ogText = submitBtn.textContent;
+        const f = new FormData(e.target);
+        const full_name = (f.get('full_name') || '').trim();
+        const email = (f.get('email') || '').trim();
+        const password = f.get('password') || '';
+        const confirm = f.get('password_confirm') || '';
+
+        let errorEl = document.getElementById('registerError');
+        if (!errorEl) {
+            errorEl = document.createElement('div');
+            errorEl.id = 'registerError';
+            errorEl.className = 'error-msg';
+            e.target.appendChild(errorEl);
+        }
+        errorEl.style.display = 'none';
+
+        if (password !== confirm) {
+            showError(errorEl, 'Passwords do not match');
+            return;
+        }
+        if (password.length < 8) {
+            showError(errorEl, 'Password must be at least 8 characters');
+            return;
+        }
+
         submitBtn.textContent = 'Creating Account...';
-        
-        setTimeout(() => {
-            alert("Registration submitted.");
-            submitBtn.textContent = 'Create Account';
-        }, 800);
+        submitBtn.style.opacity = '0.8';
+
+        try {
+            const res = await fetch('/register', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ email, password, full_name })
+            });
+
+            if (res.ok) {
+                // Deliberately NOT auto-logging-in. Signing in explicitly is
+                // what real sites do, and it is what generates the successful
+                // authentication event the sensor needs to see.
+                submitBtn.textContent = 'Account created';
+                document.body.style.opacity = '0';
+                setTimeout(() => {
+                    window.location.href = '/login?registered=1&email=' +
+                        encodeURIComponent(email);
+                }, 400);
+            } else if (res.status === 409) {
+                showError(errorEl, 'That email is already registered');
+                resetBtn(submitBtn, ogText);
+            } else {
+                const body = await res.json().catch(() => ({}));
+                showError(errorEl, body.detail
+                    ? String(body.detail) : 'Could not create the account');
+                resetBtn(submitBtn, ogText);
+            }
+        } catch (err) {
+            showError(errorEl, 'Server unreachable — is the backend running?');
+            resetBtn(submitBtn, ogText);
+        }
     });
 }
 
@@ -150,3 +198,62 @@ function resetBtn(btn, text) {
     btn.textContent = text;
     btn.style.opacity = '1';
 }
+
+
+// ---------------------------------------------------------------------------
+// Session UI: logout, and the "account created" hand-off from /register.
+// ---------------------------------------------------------------------------
+
+async function logout() {
+    try {
+        await fetch('/logout', { method: 'POST', credentials: 'same-origin' });
+    } catch (_) { /* clearing local state matters more than the round trip */ }
+    localStorage.removeItem('session_user');
+    document.body.style.opacity = '0';
+    setTimeout(() => window.location.href = '/', 250);
+}
+window.logout = logout;
+
+function renderSessionNav() {
+    const nav = document.querySelector('.nav-links');
+    if (!nav) return;
+    const user = localStorage.getItem('session_user');
+    const accountLink = nav.querySelector('a[href="/account"]');
+
+    if (user) {
+        if (accountLink) accountLink.textContent = 'Account';
+        if (!document.getElementById('logoutLink')) {
+            const a = document.createElement('a');
+            a.id = 'logoutLink';
+            a.href = '#';
+            a.textContent = 'Log out';
+            a.addEventListener('click', (e) => { e.preventDefault(); logout(); });
+            nav.appendChild(a);
+        }
+    } else {
+        const existing = document.getElementById('logoutLink');
+        if (existing) existing.remove();
+        if (accountLink) accountLink.textContent = 'Sign in';
+    }
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+    renderSessionNav();
+
+    // Prefill and confirm after registering.
+    const params = new URLSearchParams(window.location.search);
+    if (params.get('registered') === '1') {
+        const emailInput = document.getElementById('email');
+        if (emailInput && params.get('email')) emailInput.value = params.get('email');
+        const form = document.getElementById('loginForm');
+        if (form && !document.getElementById('registeredNote')) {
+            const note = document.createElement('div');
+            note.id = 'registeredNote';
+            note.textContent = 'Account created. Please sign in.';
+            note.style.cssText =
+                'background:#e8f5e9;color:#1b5e20;padding:12px 16px;' +
+                'border-radius:6px;margin-bottom:20px;font-size:14px;';
+            form.parentElement.insertBefore(note, form);
+        }
+    }
+});

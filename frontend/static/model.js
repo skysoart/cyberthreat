@@ -180,7 +180,7 @@ async function fetchReviewQueue() {
                         <button class="btn-action" style="background: rgba(239, 68, 68, 0.1); color: var(--accent-red);" onclick="alert('Label saved')">Mark False Positive</button>
                     </div>
                 </div>
-                <div style="font-family:monospace; font-size:13px; margin-bottom: 10px; padding: 10px; background:#000; border-radius:4px;">
+                <div style="font-family:monospace; font-size:13px; margin-bottom: 10px; padding: 10px; background:var(--bg-code, #f4f3f0); color:var(--text-primary); border:1px solid var(--border, #e8e6e1); border-radius:4px;">
                     ${item.ts} | ${item.src_ip} | ${item.url_path}
                 </div>
             `;

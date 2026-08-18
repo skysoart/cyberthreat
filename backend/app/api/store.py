@@ -147,3 +147,17 @@ def checkout(order_req: CheckoutRequest, request: Request, db: Session = Depends
     db.commit()
     db.refresh(order)
     return {"ok": True, "order_id": order.id, "status": "completed"}
+
+
+@router.post("/logout")
+@router.post("/api/v1/auth/logout")
+def logout(response: Response):
+    """
+    Clear the session cookie.
+
+    Logging out matters to the sensor as well as the user: session_id is what
+    fuses browser telemetry onto server-side events, so a stale cookie would
+    keep attributing a new visitor's activity to the previous session.
+    """
+    response.delete_cookie("session_id", path="/")
+    return {"ok": True}

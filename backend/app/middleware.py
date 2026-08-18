@@ -17,7 +17,16 @@ from backend.app.models.tables import Event
 from backend.app.services import detect, enrich as enr, prioritize as prio
 
 # Paths that generate noise without security signal — skip logging
-_SKIP_PREFIXES = ("/static/", "/mocks/", "/dashboard-static/", "/favicon")
+# Paths that generate noise without security signal.
+#
+# /api/v1/ and /dashboard MUST be here. The dashboard polls /api/v1/overview
+# every 2 seconds; without this the platform logs its own poll as an event,
+# "Events Processed" climbs on its own with nobody touching the site, and the
+# analyst's console pollutes the very dataset it is displaying.
+_SKIP_PREFIXES = (
+    "/static/", "/mocks/", "/dashboard-static/", "/favicon",
+    "/api/v1/", "/dashboard", "/docs", "/openapi.json", "/redoc",
+)
 
 # Paths that must return exactly 404 — explicit probe honeypots
 _PROBE_404_PATHS = frozenset([

@@ -135,7 +135,7 @@ python -m uvicorn backend.app.main:app --port 8000
 | | |
 |---|---|
 | Sample store | http://localhost:8000/ |
-| SOC dashboard | http://localhost:8000/frontend/index.html |
+| SOC dashboard | http://localhost:8000/dashboard/ |
 | API docs | http://localhost:8000/docs |
 
 **Before first use of the dashboard**, open `frontend/static/api.js` and set:
@@ -150,8 +150,10 @@ the dashboard shows fixture data instead of your real results.
 Correlation re-runs automatically every 15 seconds. To force it:
 
 ```bash
-curl -X POST http://localhost:8000/api/v1/correlate
+Invoke-RestMethod -Uri http://localhost:8000/api/v1/correlate -Method Post
 ```
+
+<sub>bash: `curl -X POST http://localhost:8000/api/v1/correlate`</sub>
 
 ---
 
@@ -182,15 +184,33 @@ appear as `normal` traffic.
 python backend/scripts/verify_live.py
 ```
 
-…or do it by hand, which is more convincing on stage:
+…or do it by hand, which is more convincing on stage. **PowerShell** (`for i in
+$(seq …)` is bash syntax and will not parse on Windows):
 
 ```bash
-for i in $(seq 1 15); do curl -s -X POST localhost:8000/login -H "Content-Type: application/json" -d '{"email":"alice@samplestore.test","password":"wrong"}' > /dev/null; done
+1..15 | ForEach-Object { try { Invoke-RestMethod -Uri http://localhost:8000/login -Method Post -ContentType 'application/json' -Body '{"email":"alice@samplestore.test","password":"wrong"}' | Out-Null } catch {} }
+```
+
+```bash
+'/.env','/.git/config','/wp-admin/','/phpmyadmin/','/backup.sql','/config.json','/server-status' | ForEach-Object { try { Invoke-WebRequest -Uri "http://localhost:8000$_" -UseBasicParsing | Out-Null } catch {} }
+```
+
+The `try { } catch { }` matters: PowerShell treats a 401 or 404 from
+`Invoke-RestMethod` as a terminating error, so without it the loop stops on the
+first failed login — i.e. immediately.
+
+<details>
+<summary>Bash / macOS / Linux equivalents</summary>
+
+```bash
+for i in $(seq 1 15); do curl -s -o /dev/null -X POST localhost:8000/login -H "Content-Type: application/json" -d '{"email":"alice@samplestore.test","password":"wrong"}'; done
 ```
 
 ```bash
 for p in /.env /.git/config /wp-admin/ /phpmyadmin/ /backup.sql /config.json /server-status; do curl -s -o /dev/null localhost:8000$p; done
 ```
+
+</details>
 
 **3. Watch the dashboard.** Within ~15 seconds the incident queue repopulates. Open the top
 incident and you'll see the entity graph, the ATT&CK kill chain, the risk breakdown, and a

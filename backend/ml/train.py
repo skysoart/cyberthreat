@@ -1,5 +1,4 @@
 """
-import sys
 backend/ml/train.py — Team 2.
 
 Trains the traffic classifier and runs the promotion gate.
@@ -32,6 +31,7 @@ that their traffic is normal.
 
 from __future__ import annotations
 
+import sys
 import json
 import time
 from datetime import datetime, timezone
