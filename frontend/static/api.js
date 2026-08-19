@@ -58,8 +58,24 @@ async function api(path, options = {}) {
         return await res.json();
     }
     
-    // Live API
-    const res = await fetch(`http://localhost:8000${path}`, options);
-    if (!res.ok) throw new Error(`HTTP Error: ${res.status}`);
+    // Live API.
+    //
+    // Relative URL, not a hardcoded http://localhost:8000 — the dashboard is
+    // served from the same origin, and hardcoding the host made every request
+    // cross-origin when the page was opened on 127.0.0.1 instead of localhost.
+    //
+    // A JSON string body needs an explicit Content-Type. Without it fetch sends
+    // text/plain, FastAPI's Body(...) cannot parse it, and every POST came back
+    // 422 — which is why "Failed to submit feedback" appeared on every click.
+    const opts = { ...options };
+    if (opts.body && typeof opts.body === 'string') {
+        opts.headers = { 'Content-Type': 'application/json', ...(opts.headers || {}) };
+    }
+    const res = await fetch(path, opts);
+    if (!res.ok) {
+        let detail = '';
+        try { detail = (await res.json()).detail || ''; } catch (_) {}
+        throw new Error(`HTTP ${res.status}${detail ? ': ' + detail : ''}`);
+    }
     return await res.json();
 }

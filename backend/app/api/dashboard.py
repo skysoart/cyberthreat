@@ -102,6 +102,29 @@ def review_queue(limit: int = Query(25, ge=1, le=200)):
     return get_engine().get_review_queue(limit=limit)
 
 
+@router.post("/api/v1/review-queue/label")
+def label_review_group(body: dict = Body(...)):
+    """
+    Label a whole group of near-identical events at once.
+
+    The queue groups by (class, path, source), so one click can retire
+    thousands of rows from a single flood instead of asking for thousands
+    of clicks.
+    """
+    ids = body.get("event_ids") or ([body["event_id"]] if body.get("event_id") else [])
+    if not ids:
+        raise HTTPException(status_code=400, detail="event_ids is required")
+    try:
+        return get_engine().submit_event_feedback(
+            event_ids=[int(i) for i in ids],
+            label=body.get("label"),
+            analyst=body.get("analyst", "demo"),
+            new_class=body.get("new_class"),
+        )
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc))
+
+
 @router.get("/api/v1/metrics")
 def metrics():
     return get_engine().get_metrics()

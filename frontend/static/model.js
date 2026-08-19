@@ -158,38 +158,84 @@ async function fetchReviewQueue() {
         const data = await api('/api/v1/review-queue');
         const list = document.getElementById('reviewQueueList');
         list.innerHTML = '';
-        
-        if (data.items.length === 0) {
-            list.innerHTML = '<div class="empty-state">No items require review.</div>';
+
+        if (!data.items || data.items.length === 0) {
+            list.innerHTML = '<div class="empty-state">Nothing awaiting review — '
+                           + 'everything has been labelled.</div>';
             return;
         }
-        
+
+        // The queue is GROUPED. A flood produces thousands of identical rows;
+        // asking an analyst to tick each one is not a review queue. Say how
+        // much work is actually outstanding.
+        const hdr = document.createElement('div');
+        hdr.style.cssText = 'color:var(--text-secondary); font-size:13px; margin-bottom:14px;';
+        hdr.textContent = `${data.items.length} groups shown`
+            + (data.events_pending
+                ? ` · ${data.events_pending.toLocaleString()} events across `
+                  + `${data.groups_available} groups awaiting review`
+                : '');
+        list.appendChild(hdr);
+
         data.items.forEach(item => {
+            const ids = item.event_ids || [item.event_id];
+            const n = item.count || 1;
             const div = document.createElement('div');
             div.className = 'review-card';
-            
-            // Re-use logic for evidence formatting loosely, but keep it simple
             div.innerHTML = `
-                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 10px;">
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
                     <div>
-                        <span class="priority-pill" style="background:#2d3748;">Event #${item.event_id}</span>
-                        <span style="color:var(--text-secondary); font-size:12px; margin-left:10px;">Sampled via: <strong style="color:white">${item.sampled_by}</strong> (Uncertainty: ${item.uncertainty})</span>
+                        <span class="priority-pill" style="background:#2d3748;">${item.pred_class}</span>
+                        ${n > 1 ? `<span class="priority-pill" style="background:#b46b3f; margin-left:6px;">${n.toLocaleString()} events</span>` : ''}
+                        <span style="color:var(--text-secondary); font-size:12px; margin-left:10px;">
+                            via <strong>${item.sampled_by}</strong> · confidence ${item.pred_confidence}
+                        </span>
                     </div>
-                    <div style="display:flex; gap: 8px;">
-                        <button class="btn-action" onclick="alert('Label saved')">Confirm: ${item.pred_class}</button>
-                        <button class="btn-action" style="background: rgba(239, 68, 68, 0.1); color: var(--accent-red);" onclick="alert('Label saved')">Mark False Positive</button>
+                    <div style="display:flex; gap:8px;">
+                        <button class="btn-action js-confirm">Confirm: ${item.pred_class}</button>
+                        <button class="btn-action js-fp" style="background: rgba(239,68,68,0.1); color: var(--accent-red);">Mark False Positive</button>
                     </div>
                 </div>
-                <div style="font-family:monospace; font-size:13px; margin-bottom: 10px; padding: 10px; background:var(--bg-code, #f4f3f0); color:var(--text-primary); border:1px solid var(--border, #e8e6e1); border-radius:4px;">
-                    ${item.ts} | ${item.src_ip} | ${item.url_path}
+                <div style="font-family:monospace; font-size:13px; margin-bottom:10px; padding:10px; background:var(--bg-code, #f4f3f0); color:var(--text-primary); border:1px solid var(--border, #e8e6e1); border-radius:4px;">
+                    ${fmtTime(item.ts)} | ${item.src_ip} | ${item.url_path}
                 </div>
             `;
+
+            const send = async (label, btn) => {
+                btn.disabled = true;
+                const original = btn.textContent;
+                btn.textContent = 'Saving…';
+                try {
+                    await api('/api/v1/review-queue/label', {
+                        method: 'POST',
+                        body: JSON.stringify({ event_ids: ids, label, analyst: 'demo' })
+                    });
+                    // Remove on success. Leaving a labelled item on screen means
+                    // the analyst gets asked the same question again.
+                    div.style.transition = 'opacity .25s';
+                    div.style.opacity = '0';
+                    setTimeout(() => {
+                        div.remove();
+                        if (!list.querySelector('.review-card')) fetchReviewQueue();
+                    }, 250);
+                } catch (err) {
+                    btn.disabled = false;
+                    btn.textContent = original;
+                    alert('Could not save label: ' + err.message);
+                }
+            };
+            div.querySelector('.js-confirm').addEventListener(
+                'click', e => send('confirmed_threat', e.target));
+            div.querySelector('.js-fp').addEventListener(
+                'click', e => send('false_positive', e.target));
             list.appendChild(div);
         });
-    } catch(err) {
-        document.getElementById('reviewQueueList').innerHTML = `<div class="error-state">Failed to load review queue</div>`;
+    } catch (err) {
+        document.getElementById('reviewQueueList').innerHTML =
+            `<div class="error-state">Failed to load review queue: ${err.message}</div>`;
     }
 }
+
 
 async function retrainModel() {
     const btn = document.getElementById('btnRetrain');

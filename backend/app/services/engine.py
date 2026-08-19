@@ -464,38 +464,100 @@ class ThreatEngine:
 
     def get_review_queue(self, limit: int = 25) -> dict:
         """
-        Uncertainty sampling: surface what the model is LEAST sure about, plus a
-        small random sample so the label set is not biased entirely to the
-        decision boundary. Confident predictions teach the model nothing.
+        Uncertainty sampling, GROUPED, excluding anything already labelled.
+
+        Three changes that came straight from using it:
+
+        * Grouped. A flood produces thousands of identical requests. Asking an
+          analyst to tick 4,000 boxes reading "127.0.0.1 /products flood" is not
+          a review queue, it is a punishment. Identical (class, path, source)
+          rows collapse into one entry carrying every event id, so one click
+          labels the whole group.
+        * Already-labelled events are excluded, so items disappear once actioned
+          instead of sitting there re-asking the same question.
+        * Sorted by uncertainty, so the most informative group is first.
         """
+        from collections import defaultdict
         import random
+
         db = self._sf()
         try:
-            rows = db.query(Event).filter(Event.pred_confidence.isnot(None)).all()
+            labelled = {e for (e,) in db.query(Feedback.event_id)
+                        .filter(Feedback.event_id.isnot(None)).all()}
+            rows = (db.query(Event)
+                      .filter(Event.pred_confidence.isnot(None))
+                      .order_by(Event.ts.desc()).limit(8000).all())
         finally:
             db.close()
+
+        rows = [r for r in rows if r.id not in labelled]
         if not rows:
             return {"total": 0, "items": []}
 
-        boundary = 1.0 / len(set(r.pred_class for r in rows if r.pred_class) or [1])
-        rows.sort(key=lambda e: abs((e.pred_confidence or 0.0) - boundary))
-        n_unc = max(1, int(limit * 0.9))
-        uncertain, rest = rows[:n_unc], rows[n_unc:]
-        rnd = (random.Random(42).sample(rest, min(len(rest), limit - len(uncertain)))
-               if rest else [])
+        # Group by (class, path) — deliberately NOT including source IP.
+        # Including it left 5,000+ groups, because benign traffic arrives from
+        # thousands of distinct addresses and barely collapsed at all. The
+        # question an analyst is actually answering is "is this class right for
+        # this path", which is the same answer regardless of who sent it.
+        groups: dict[tuple, list] = defaultdict(list)
+        for r in rows:
+            groups[(r.pred_class, r.url_path.split("?")[0])].append(r)
 
-        def item(e, how):
-            return {
-                "event_id": e.id, "ts": _iso(e.ts), "src_ip": e.src_ip,
-                "url_path": e.url_path, "pred_class": e.pred_class,
-                "pred_confidence": e.pred_confidence,
-                "uncertainty": round(1.0 - (e.pred_confidence or 0.0), 3),
-                "sampled_by": how,
-                "evidence": _load(e.evidence_json, []),
-            }
-        items = ([item(e, "uncertainty") for e in uncertain]
-                 + [item(e, "random") for e in rnd])
-        return {"total": len(items), "items": items}
+        boundary = 1.0 / max(1, len({r.pred_class for r in rows if r.pred_class}))
+        items = []
+        for (cls, path), evs in groups.items():
+            evs.sort(key=lambda e: e.ts, reverse=True)
+            head = evs[0]
+            conf = sum(e.pred_confidence or 0 for e in evs) / len(evs)
+            sources = {e.src_ip for e in evs}
+            items.append({
+                "event_id": head.id,
+                "event_ids": [e.id for e in evs],
+                "count": len(evs),
+                "distinct_sources": len(sources),
+                "ts": _iso(head.ts),
+                "first_seen": _iso(evs[-1].ts),
+                "src_ip": (head.src_ip if len(sources) == 1
+                           else f"{len(sources)} sources"),
+                "url_path": path,
+                "pred_class": cls,
+                "pred_confidence": round(conf, 2),
+                "uncertainty": round(abs(conf - boundary), 3),
+                "sampled_by": "uncertainty",
+                "evidence": _load(head.evidence_json, []),
+            })
+
+        items.sort(key=lambda i: i["uncertainty"])
+        picked = items[:max(1, int(limit * 0.9))]
+        rest = items[len(picked):]
+        if rest:
+            extra = random.Random(42).sample(rest, min(len(rest), limit - len(picked)))
+            for e in extra:
+                e["sampled_by"] = "random"
+            picked += extra
+        return {"total": len(picked), "items": picked,
+                "groups_available": len(items),
+                "events_pending": sum(i["count"] for i in items)}
+
+    def submit_event_feedback(self, event_ids: list[int], label: str,
+                              analyst: str = "demo",
+                              new_class: str | None = None) -> dict:
+        """Label one group of events at once. Human labels only, as ever."""
+        if label not in ("confirmed_threat", "false_positive", "reclassify"):
+            raise ValueError(f"invalid label: {label}")
+        db = self._sf()
+        try:
+            evs = db.query(Event).filter(Event.id.in_(event_ids)).all()
+            for e in evs:
+                db.add(Feedback(event_id=e.id, incident_id=e.incident_id,
+                                label=label, analyst=analyst, new_class=new_class,
+                                original_prediction=e.pred_class))
+            db.commit()
+            pending = (db.query(Feedback)
+                         .filter(Feedback.consumed_by_version.is_(None)).count())
+        finally:
+            db.close()
+        return {"ok": True, "labelled": len(evs), "labels_pending": pending}
 
     # ------------------------------------------------------------ model API
 

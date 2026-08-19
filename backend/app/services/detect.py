@@ -313,11 +313,26 @@ def classify(features: dict, url_path: str, http_status: int
     """
     -> (pred_class, confidence, evidence, attack_technique)
 
-    Uses the trained model when one exists, the rule layer otherwise. Either
-    way the evidence is produced the same way, so the UI is identical and the
-    explanation never depends on the model being present.
+    THE RULES WIN WHEN THEY FIRE. The model only decides cases no rule covers.
+
+    That ordering is a safety property, not a fallback. The rules encode hard
+    thresholds — "four failed logins against one account inside 60 seconds" —
+    and no statistical model should be allowed to overrule that with "normal".
+
+    It is also a concrete failure this project hit. Every brute-force sample in
+    the training data is script-generated, so it carries
+    browser_telemetry_present = 0. A human hammering the login FORM has that
+    flag at 1 — a combination the model has never seen — and it duly labelled
+    25 consecutive failed passwords as `normal`. The rule layer caught it on
+    the fourth attempt. A model trained only on synthetic traffic cannot be the
+    sole authority on traffic that is not synthetic.
     """
+    hits = _rules(features, url_path, http_status)
+    rule_cls, rule_conf, rule_keys = (max(hits, key=lambda h: h[1])
+                                      if hits else (None, 0.0, []))
+
     model = _load_model()
+    model_cls, model_conf = None, 0.0
     if model is not None:
         try:
             import numpy as np
@@ -325,19 +340,20 @@ def classify(features: dict, url_path: str, http_status: int
             proba = model.predict_proba(to_vector(features).reshape(1, -1))[0]
             classes = list(model.classes_)
             idx = int(np.argmax(proba))
-            cls, conf = classes[idx], float(proba[idx])
-            keys = [k for k in ("browser_telemetry_present", "auth_fail_ip_60s",
-                                "req_rate_60s", "asn_is_hosting") if k in features]
-            return cls, conf, evidence_for(features, keys), \
-                technique_for(cls, url_path, features, http_status)
+            model_cls, model_conf = classes[idx], float(proba[idx])
         except Exception:
-            pass                                        # fall through to rules
+            model_cls = None
 
-    hits = _rules(features, url_path, http_status)
-    if not hits:
-        return "normal", 0.95, evidence_for(
-            features, ["browser_telemetry_present", "req_rate_60s"]), None
+    if rule_cls is not None:
+        conf = max(rule_conf, model_conf) if model_cls == rule_cls else rule_conf
+        return rule_cls, round(min(0.99, conf), 2),             evidence_for(features, rule_keys),             technique_for(rule_cls, url_path, features, http_status)
 
-    cls, conf, keys = max(hits, key=lambda h: h[1])
-    return cls, round(conf, 2), evidence_for(features, keys), \
-        technique_for(cls, url_path, features, http_status)
+    # No rule fired — let the model generalise beyond the hand-written
+    # thresholds, which is exactly what it is for.
+    if model_cls is not None:
+        keys = [k for k in ("browser_telemetry_present", "auth_fail_ip_60s",
+                            "req_rate_60s", "asn_is_hosting") if k in features]
+        return model_cls, round(model_conf, 2), evidence_for(features, keys),             technique_for(model_cls, url_path, features, http_status)
+
+    return "normal", 0.95, evidence_for(
+        features, ["browser_telemetry_present", "req_rate_60s"]), None
